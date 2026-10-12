@@ -482,39 +482,78 @@ footer a{color:var(--dim)}
   .play,.play-none{width:40px; height:40px}
 }
 
-/* ---------- top bar: the Prague Live island, without pages ----------
-   One page here, so it sits at the top of the page rather than floating. */
-:root{--nav-h:0px}
-.lp-bar{display:flex; align-items:center; gap:10px; margin:14px auto 0; padding:6px 6px 6px 12px; max-width:560px;
-  border-radius:22px; background:color-mix(in srgb, var(--raised) 78%, transparent);
+/* ---------- top navigation: the Prague Live island, two pages ----------
+   Live picks and Profile. Fixed to the top; slims down once you scroll, and
+   on a phone slides away while you read down (any move up brings it back).
+   --nav-full (its height at the top) pads the pages, --nav-h (slim) is where
+   the sticky filter row stops. Both are measured, not guessed. */
+:root{--nav-full:92px; --nav-h:72px}
+#page-live,#page-profile{padding-top:var(--nav-full)}
+.topnav{position:fixed; top:0; left:0; right:0; z-index:45; pointer-events:none;
+  padding:calc(env(safe-area-inset-top, 0px) + 10px) 12px 0; transition:padding .32s cubic-bezier(.2,.8,.2,1)}
+.topnav.small{padding-top:calc(env(safe-area-inset-top, 0px) + 6px); padding-inline:22px}
+@media (max-width:759px){
+  .topnav{transition:padding .32s cubic-bezier(.2,.8,.2,1), transform .34s cubic-bezier(.2,.8,.2,1)}
+  .topnav.away{transform:translateY(calc(-100% - 12px))}
+  .controls{transition:top .34s cubic-bezier(.2,.8,.2,1)}
+  html.nav-away .controls{top:env(safe-area-inset-top, 0px)}
+}
+.topnav.measuring,.topnav.measuring *{transition:none!important}
+.topnav::before{content:""; position:absolute; inset:0 0 -10px; z-index:-1; pointer-events:none; opacity:0; transition:opacity .32s;
+  background:linear-gradient(var(--ground) 62%, color-mix(in srgb, var(--ground) 0%, transparent))}
+.topnav.small::before{opacity:1}
+.isle{pointer-events:auto; position:relative; max-width:420px; margin:0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:4px; padding:6px;
+  border-radius:24px; background:color-mix(in srgb, var(--raised) 78%, transparent);
   -webkit-backdrop-filter:blur(22px) saturate(1.6); backdrop-filter:blur(22px) saturate(1.6);
-  border:1px solid color-mix(in srgb, var(--text) 10%, transparent); box-shadow:0 14px 40px -14px rgba(0,0,0,.45)}
-.lp-brand{display:flex; align-items:center; gap:9px; min-width:0; font:400 15px "Archivo Black",Archivo,sans-serif; text-transform:uppercase; color:var(--text); white-space:nowrap}
-.lp-brand svg{width:28px; height:28px; border-radius:8px; flex:none}
-.lp-brand > span{overflow:hidden; text-overflow:ellipsis}
-.lp-taste{margin-left:auto; display:inline-flex; align-items:center; gap:8px; height:44px; padding:0 16px 0 13px; border:0; border-radius:16px; cursor:pointer;
-  background:color-mix(in srgb, var(--accent) 14%, transparent); color:var(--accent); font:700 13.5px Archivo,sans-serif; white-space:nowrap;
-  -webkit-tap-highlight-color:transparent; transition:background .25s}
-.lp-taste:hover{background:color-mix(in srgb, var(--accent) 22%, transparent)}
-.lp-taste:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-.lp-taste svg{width:18px; height:18px}
-@media (max-width:620px){ .lp-bar{margin-top:10px} .lp-taste{height:40px; padding:0 13px 0 11px} }
+  border:1px solid color-mix(in srgb, var(--text) 10%, transparent);
+  box-shadow:0 14px 40px -14px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05); transition:border-radius .32s}
+.topnav.small .isle{border-radius:20px}
+.isle-brand{display:none}
+.isle-btn{position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; height:56px;
+  border:0; border-radius:18px; background:none; color:var(--dim); cursor:pointer; -webkit-tap-highlight-color:transparent;
+  font:700 12.5px/1 Archivo,sans-serif; letter-spacing:.01em; transition:background .3s, color .3s, height .32s, gap .32s}
+.isle-btn svg{width:22px; height:22px; transition:width .32s, height .32s}
+.topnav.small .isle-btn{height:46px; gap:2px}
+.topnav.small .isle-btn svg{width:18px; height:18px}
+@media (hover:hover){ .isle-btn:hover{color:var(--text)} }
+.isle-btn[aria-current="page"]{background:color-mix(in srgb, var(--accent) 16%, transparent); color:var(--accent)}
+.isle-btn[aria-current="page"]::after{content:""; position:absolute; bottom:5px; left:50%; width:18px; height:3px; margin-left:-9px; border-radius:2px; background:var(--accent)}
+.isle-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.isle-dot{position:absolute; top:10px; right:calc(50% - 22px); width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 2px var(--raised)}
+.isle-dot[hidden]{display:none}
+@media (min-width:760px){
+  .topnav{padding-top:calc(env(safe-area-inset-top, 0px) + 14px)}
+  .isle{max-width:none; width:max-content; grid-template-columns:auto repeat(2,160px); align-items:center}
+  .isle-brand{display:flex; align-items:center; gap:9px; padding:0 18px 0 10px; margin-right:6px; border-right:1px solid var(--line);
+    font:400 15px "Archivo Black",Archivo,sans-serif; text-transform:uppercase; color:var(--text); white-space:nowrap}
+  .isle-brand svg{width:28px; height:28px; border-radius:8px}
+  .isle-btn{flex-direction:row; gap:9px; height:52px; font-size:14px}
+  .isle-btn svg{width:18px; height:18px}
+  .topnav.small .isle-btn{height:44px; gap:9px}
+  .isle-btn[aria-current="page"]::after{bottom:4px}
+  .isle-dot{top:12px; right:auto; left:34px}
+}
+/* a page arriving slides in from its side */
+.pg-in{animation:pg-in .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes pg-in{from{opacity:0; transform:translateX(var(--pg-from, 40px))}}
 
-/* ---------- setup (first visit, "My taste") ---------- */
+/* ---------- the quiz (first visit; Profile → Replay) ---------- */
 #sec-fest.off,#sec-trip.off{display:none}
 body.setup-open{overflow:hidden}
 .setup{position:fixed; inset:0; z-index:60; background:color-mix(in srgb, var(--ground) 82%, transparent);
-       backdrop-filter:blur(6px); display:grid; place-items:center; padding:16px}
+       -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); display:grid; place-items:center; padding:16px}
 .setup[hidden]{display:none}
 .setup-card{
   width:min(560px, 100%); max-height:calc(100dvh - 32px); display:flex; flex-direction:column;
-  background:var(--raised); border:1px solid var(--line); border-radius:18px;
+  background:var(--raised); border:1px solid var(--line); border-radius:26px;
   box-shadow:0 24px 60px -20px rgba(0,0,0,.6); overflow:hidden;
 }
 .setup-top{display:flex; align-items:center; gap:12px; padding:18px 22px 0}
-.setup-step{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); white-space:nowrap}
 .setup-track{flex:1; height:4px; border-radius:2px; background:var(--line-soft); overflow:hidden}
 .setup-bar{display:block; height:100%; background:var(--accent); transition:width .25s}
+.setup-x{flex:none; width:32px; height:32px; margin-right:-8px; border:0; border-radius:50%; background:none; color:var(--faint); font-size:20px; line-height:1; cursor:pointer}
+.setup-x:hover{color:var(--text); background:var(--surface)}
+.setup-x[hidden]{display:none}
 .setup-body{padding:10px 22px 8px; overflow-y:auto}
 .setup-body h2{font-family:"Archivo Black",Archivo,sans-serif; font-weight:400; font-size:24px; line-height:1.15; margin:10px 0 6px}
 .s-note{color:var(--dim); margin:0 0 16px; font-size:14px}
@@ -529,90 +568,162 @@ body.setup-open{overflow:hidden}
 .s-card.on{border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); background:var(--accent-wash)}
 .s-check{display:flex; gap:10px; align-items:center; margin:16px 2px 4px; font-size:14px; color:var(--text)}
 .s-check input{width:18px; height:18px; accent-color:var(--accent)}
-.s-chips{display:flex; flex-wrap:wrap; gap:8px}
-.s-chip{
-  padding:9px 14px; border-radius:999px; cursor:pointer; font:inherit; font-size:14px;
-  background:var(--surface); color:var(--text); border:1px solid var(--line);
-}
-.s-chip.on{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
-.s-chip.off{background:transparent; color:var(--faint); border-style:dashed; text-decoration:line-through}
-.s-add{display:flex; gap:8px; margin-bottom:10px}
-.s-add input{flex:1; min-width:0; padding:10px 12px; border-radius:10px; border:1px solid var(--line);
-             background:var(--surface); color:var(--text); font-size:16px}
-.s-add button,.s-btn{
+.s-btn{
   padding:10px 18px; border-radius:999px; cursor:pointer; border:0; font:inherit; font-weight:700;
-  background:var(--accent); color:var(--accent-ink);
+  background:var(--accent); color:var(--accent-ink); text-decoration:none; display:inline-flex; align-items:center; gap:6px;
 }
-.s-btn.ghost{background:none; color:var(--dim); border:1px solid var(--line)}
+.s-btn.ghost{background:none; color:var(--text); border:1px solid var(--line)}
 .s-btn[hidden]{display:none}
-.s-sugg{display:flex; flex-direction:column; gap:2px; margin-bottom:12px}
-.s-sug{text-align:left; padding:9px 12px; border-radius:8px; cursor:pointer; border:0; font:inherit;
-       background:var(--surface); color:var(--text)}
-.s-sug:hover{background:var(--line-soft)}
 .setup-nav{display:flex; align-items:center; gap:8px; padding:14px 22px 18px; border-top:1px solid var(--line-soft)}
-/* the quick setup */
-.setup-card{border-radius:26px}
+.setup-nav .spacer{flex:1}
 .setup-count[hidden]{display:none}
 .setup-count{font:600 12px "IBM Plex Mono",monospace; color:var(--dim); white-space:nowrap; padding:6px 11px; border-radius:999px; background:var(--surface)}
 .setup-count b{color:var(--accent); font-size:13px}
 .setup-count.pop{animation:s-pop .45s cubic-bezier(.3,1.6,.5,1)}
 @keyframes s-pop{40%{transform:scale(1.12)}}
+@keyframes s-in{from{transform:scale(.7); opacity:0}}
 .s-city{grid-template-columns:repeat(3,minmax(0,1fr))}
 .s-city .s-card{border-radius:16px; padding:16px 14px}
+.s-duel{display:grid; gap:12px; animation:s-slide .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes s-slide{from{opacity:0; transform:translateX(24px)}}
+.s-q{display:flex; align-items:baseline; justify-content:space-between; gap:10px; font:700 19px/1.25 Archivo,sans-serif}
+.s-q span{font:500 11.5px "IBM Plex Mono",monospace; color:var(--faint); white-space:nowrap}
+.s-vs{display:grid; grid-template-columns:1fr 1fr; gap:10px; position:relative}
+.s-vs::after{content:"or"; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
+  background:var(--raised); border:1px solid var(--line); font:600 12px "IBM Plex Mono",monospace; color:var(--dim); pointer-events:none}
+.s-side{position:relative; min-height:170px; padding:18px 16px; border-radius:20px; border:2px solid transparent; cursor:pointer; text-align:left; display:flex; flex-direction:column; justify-content:flex-end; gap:4px; color:#fff;
+  font:inherit; overflow:hidden; transition:transform .2s cubic-bezier(.3,1.5,.5,1), border-color .2s, opacity .2s; -webkit-tap-highlight-color:transparent}
+.s-side.a{background:linear-gradient(150deg,#F2603C,#9b2c14)}
+.s-side.b{background:linear-gradient(150deg,#3987e5,#1b3f78)}
+/* a band: its photo, darkened at the bottom so the name reads */
+.s-side.photo{background-size:cover; background-position:center 25%}
+.s-side.photo::before{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.82)); pointer-events:none}
+.s-side > *{position:relative}
+.s-side b{font:400 20px/1.05 "Archivo Black",Archivo,sans-serif; text-transform:uppercase}
+.s-side span{font-size:13px; opacity:.88}
+@media (hover:hover){ .s-side:hover{transform:translateY(-2px)} }
+.s-side.on{border-color:var(--text); transform:scale(1.03)}
+.s-duel:has(.s-side.on) .s-side:not(.on){opacity:.45}
+.s-hear{position:absolute; top:10px; right:10px; width:36px; height:36px; border-radius:50%; border:0; display:grid; place-items:center; cursor:pointer;
+  background:rgba(0,0,0,.45); color:#fff; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px)}
+.s-hear svg{width:15px; height:15px}
+.s-hear.on{background:var(--spotify); color:var(--spotify-ink)}
+.s-hear.busy{opacity:.6}
+.s-both{justify-self:center; padding:9px 20px; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--text); cursor:pointer; font:600 13.5px Archivo,sans-serif}
+.s-both.on{background:var(--text); color:var(--ground)}
+.s-done{text-align:center; padding:6px 0 4px}
+.s-big{font:400 76px/1 "Archivo Black",Archivo,sans-serif; color:var(--accent); animation:s-in .5s cubic-bezier(.3,1.5,.5,1)}
+.s-done h2{margin-top:2px}
+.s-done .s-note{max-width:42ch; margin:0 auto 16px}
+.s-tip{display:flex; gap:10px; align-items:flex-start; text-align:left; margin:4px 0 6px; padding:12px 14px; border-radius:14px; background:var(--surface); font-size:13.5px; color:var(--dim)}
+.s-tip b{color:var(--text)}
+@media (max-width:620px){ .s-city{grid-template-columns:1fr} .s-side{min-height:150px} .s-side b{font-size:17px} .s-big{font-size:64px} }
+
+/* shared: artist search results, faces, chips */
+.s-face{width:40px; height:40px; border-radius:50%; object-fit:cover; display:grid; place-items:center; background:var(--line); color:var(--text); font-weight:700; flex:none}
 .s-search{position:relative}
 .s-search svg{position:absolute; left:14px; top:50%; width:16px; height:16px; margin-top:-8px; color:var(--faint); pointer-events:none}
 .s-search input{width:100%; height:48px; padding:0 14px 0 40px; border-radius:16px; border:1px solid var(--line); background:var(--surface); color:var(--text); font:500 16px Archivo,sans-serif}
 .s-search input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent)}
 .s-results{display:grid; gap:4px; margin:8px 0 4px}
+.s-results:empty{display:none}
 .s-res{display:grid; grid-template-columns:40px minmax(0,1fr) auto; gap:12px; align-items:center; padding:7px 10px 7px 7px; border:0; border-radius:14px; background:none; color:var(--text); cursor:pointer; text-align:left; font:inherit}
 .s-res:hover{background:var(--surface)}
 .s-res b{display:block; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .s-res small{display:block; font-size:12px; color:var(--faint)}
 .s-res small em{font-style:normal; color:var(--accent); font-weight:600}
 .s-res i{font-style:normal; font-size:22px; color:var(--accent); width:30px; height:30px; display:grid; place-items:center; border-radius:50%; background:var(--accent-wash)}
-.s-face{width:40px; height:40px; border-radius:50%; object-fit:cover; display:grid; place-items:center; background:var(--line); color:var(--text); font-weight:700; flex:none}
-.s-picked{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 4px}
-.s-pick{display:inline-flex; align-items:center; gap:8px; padding:4px 12px 4px 4px; border-radius:999px; border:1px solid var(--accent); background:var(--accent-wash); color:var(--text); cursor:pointer; font:600 13.5px Archivo,sans-serif; animation:s-in .35s cubic-bezier(.3,1.5,.5,1)}
+.s-picked{display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 4px}
+.s-pick{display:inline-flex; align-items:center; gap:8px; padding:4px 10px 4px 4px; border-radius:999px; border:1px solid var(--accent); background:var(--accent-wash); color:var(--text); cursor:pointer; font:600 13.5px Archivo,sans-serif; animation:s-in .35s cubic-bezier(.3,1.5,.5,1)}
 .s-pick .s-face{width:30px; height:30px; font-size:12px}
+.s-pick small{font:600 10.5px "IBM Plex Mono",monospace; color:var(--accent)}
 .s-pick i{font-style:normal; color:var(--faint); margin-left:2px}
-@keyframes s-in{from{transform:scale(.7); opacity:0}}
 .s-rel{margin-top:14px}
 .s-rel p{margin:0 0 8px; font-size:13px; color:var(--dim)}
 .s-bubbles{display:flex; flex-wrap:wrap; gap:8px}
 .s-bub{display:inline-flex; align-items:center; gap:7px; padding:3px 12px 3px 3px; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--text); cursor:pointer; font:600 13px Archivo,sans-serif; animation:s-in .4s cubic-bezier(.3,1.5,.5,1) both}
 .s-bub:hover{border-color:var(--accent)}
 .s-bub .s-face{width:28px; height:28px; font-size:11px}
-.s-bub:nth-child(2){animation-delay:.04s} .s-bub:nth-child(3){animation-delay:.08s} .s-bub:nth-child(4){animation-delay:.12s} .s-bub:nth-child(5){animation-delay:.16s} .s-bub:nth-child(6){animation-delay:.2s}
-.s-duel{display:grid; gap:12px}
-.s-q{display:flex; align-items:baseline; justify-content:space-between; gap:10px; font:700 18px Archivo,sans-serif}
-.s-q span{font:500 11.5px "IBM Plex Mono",monospace; color:var(--faint)}
-.s-vs{display:grid; grid-template-columns:1fr 1fr; gap:10px; position:relative}
-.s-vs::after{content:"or"; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
-  background:var(--raised); border:1px solid var(--line); font:600 12px "IBM Plex Mono",monospace; color:var(--dim)}
-.s-side{min-height:150px; padding:18px 16px; border-radius:20px; border:2px solid transparent; cursor:pointer; text-align:left; display:flex; flex-direction:column; justify-content:flex-end; gap:4px; color:#fff;
-  font:inherit; transition:transform .2s cubic-bezier(.3,1.5,.5,1), border-color .2s, opacity .2s}
-.s-side.a{background:linear-gradient(150deg,#F2603C,#9b2c14)}
-.s-side.b{background:linear-gradient(150deg,#3987e5,#1b3f78)}
-.s-side b{font:400 20px/1.05 "Archivo Black",Archivo,sans-serif; text-transform:uppercase}
-.s-side span{font-size:13px; opacity:.85}
-.s-side:hover{transform:translateY(-2px)}
-.s-side.on{border-color:var(--text); transform:scale(1.03)}
-.s-duel:has(.s-side.on) .s-side:not(.on){opacity:.45}
-.s-both{justify-self:center; padding:8px 18px; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--text); cursor:pointer; font:600 13px Archivo,sans-serif}
-.s-both.on{background:var(--text); color:var(--ground)}
-.s-done{text-align:center; padding:6px 0 4px}
-.s-big{font:400 76px/1 "Archivo Black",Archivo,sans-serif; color:var(--accent); animation:s-in .5s cubic-bezier(.3,1.5,.5,1)}
-.s-done h2{margin-top:2px}
-.s-link{border:0; background:none; color:var(--dim); text-decoration:underline; text-underline-offset:3px; cursor:pointer; font:inherit; font-size:13.5px}
-.s-hub{display:grid; gap:8px}
-.s-row{display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:16px; border:1px solid var(--line); background:var(--surface); color:var(--text); cursor:pointer; text-align:left; font:600 14.5px Archivo,sans-serif}
-.s-row > span{flex:1; min-width:0}
-.s-row small{display:block; font:600 10.5px "IBM Plex Mono",monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); margin-bottom:3px}
-.s-row i{font-style:normal; color:var(--accent); font-size:13px; white-space:nowrap}
-.s-faces{display:inline-flex; vertical-align:middle; margin-right:8px}
-.s-faces .s-face{width:24px; height:24px; margin-left:-6px; border:2px solid var(--surface); font-size:10px}
-.s-faces .s-face:first-child{margin-left:0}
-@media (max-width:620px){ .s-city{grid-template-columns:1fr} .s-side{min-height:130px} .s-side b{font-size:17px} .s-big{font-size:64px} }
+.s-chips{display:flex; flex-wrap:wrap; gap:8px}
+.s-chip{padding:8px 13px; border-radius:999px; cursor:pointer; font:inherit; font-size:13.5px; background:var(--surface); color:var(--text); border:1px solid var(--line)}
+.s-chip.on{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+.s-chip.off{background:transparent; color:var(--faint); border-style:dashed; text-decoration:line-through}
+
+/* ---------- Profile page ---------- */
+.pf{max-width:780px; margin:0 auto; padding-bottom:20px}
+.pf-hero{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding:22px 0 4px}
+.pf-hero h1{font-size:clamp(34px,6vw,52px)}
+.pf-stat{flex:none; text-align:right; line-height:1.15; color:var(--dim); font-size:13px}
+.pf-stat b{display:block; font:400 54px/1 "Archivo Black",Archivo,sans-serif; color:var(--accent)}
+.pf-stat b.pop{animation:s-pop .45s cubic-bezier(.3,1.6,.5,1)}
+.pf-actions{display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 6px}
+.pf-jump{position:sticky; top:var(--nav-h); z-index:20; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin:14px -20px 6px; padding:10px 20px; background:var(--ground)}
+html.nav-away .pf-jump{top:env(safe-area-inset-top, 0px)}
+.pf-jump::-webkit-scrollbar{display:none}
+.pf-jump a{flex:none; padding:7px 13px; border-radius:999px; background:var(--surface); border:1px solid var(--line-soft); color:var(--dim); text-decoration:none; font:600 12.5px Archivo,sans-serif}
+.pf-jump a:hover{color:var(--text)}
+.pf-card{margin:14px 0 0; padding:20px 20px 22px; border-radius:22px; background:var(--raised); border:1px solid var(--line-soft); box-shadow:var(--shadow); scroll-margin-top:calc(var(--nav-h) + 64px)}
+.pf-h{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:4px}
+.pf-h h2{margin:0; font:400 20px/1.15 "Archivo Black",Archivo,sans-serif; text-transform:uppercase; letter-spacing:-.01em}
+.pf-h .pf-link{flex:none}
+.pf-note{margin:0 0 14px; color:var(--dim); font-size:13.5px; max-width:60ch}
+.pf-link{border:0; background:none; padding:0; color:var(--accent); cursor:pointer; font:600 13px Archivo,sans-serif; text-decoration:underline; text-underline-offset:3px; text-decoration-color:color-mix(in srgb, var(--accent) 40%, transparent)}
+.pf-sub{margin:18px 0 8px; font:600 10.5px "IBM Plex Mono",monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--faint)}
+.pf-sub:first-child{margin-top:0}
+/* a row: what it is on the left, its control on the right (stacked on a phone) */
+.pf-row{display:flex; align-items:center; justify-content:space-between; gap:10px 16px; padding:10px 0; border-top:1px solid var(--line-soft)}
+.pf-row:first-of-type{border-top:0}
+.pf-row > span{min-width:0; font-weight:600; font-size:14.5px}
+.pf-row > span small{display:block; font:500 11.5px Archivo,sans-serif; color:var(--faint); margin-top:1px}
+.pf-row > span small.auto{color:var(--amber)}
+@media (max-width:620px){ .pf-row.stack{flex-direction:column; align-items:stretch} .pf-row.stack .seg{width:100%} .pf-row.stack .seg button{flex:1} }
+/* segmented control */
+.seg{display:inline-flex; flex:none; gap:2px; padding:3px; border-radius:999px; background:var(--surface); border:1px solid var(--line-soft)}
+.seg button{min-width:44px; padding:7px 12px; border:0; border-radius:999px; background:none; color:var(--dim); cursor:pointer; font:600 13px Archivo,sans-serif; white-space:nowrap; -webkit-tap-highlight-color:transparent; transition:background .2s, color .2s}
+@media (hover:hover){ .seg button:hover{color:var(--text)} }
+.seg button.on{background:var(--accent); color:var(--accent-ink)}
+.seg button.on.neg{background:var(--text); color:var(--ground)}
+.seg button.on.mid{background:var(--line); color:var(--text)}
+.seg-q{border-radius:16px}
+.seg-q button{max-width:170px; border-radius:13px; white-space:normal; line-height:1.15; text-wrap:balance}
+@media (max-width:620px){ .seg-q button{max-width:none; min-width:0; padding:8px 8px} }
+.pf-genres{display:grid; grid-template-columns:1fr 1fr; gap:0 26px}
+.pf-genres .pf-row:nth-child(2){border-top:0}
+@media (max-width:720px){ .pf-genres{grid-template-columns:1fr} .pf-genres .pf-row:nth-child(2){border-top:1px solid var(--line-soft)} }
+.pf-cities{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:6px}
+.pf-cities .s-card{border-radius:16px; padding:12px 14px}
+@media (max-width:520px){ .pf-cities .s-card b{font-size:15px} .pf-cities .s-card span{font-size:12px} }
+/* switch */
+.tg{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 0; border-top:1px solid var(--line-soft); cursor:pointer; font-weight:600; font-size:14.5px}
+.tg small{display:block; font:500 11.5px Archivo,sans-serif; color:var(--faint)}
+.tg input{position:absolute; opacity:0; pointer-events:none}
+.tg i{flex:none; position:relative; width:46px; height:28px; border-radius:999px; background:var(--line); transition:background .2s}
+.tg i::after{content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .2s cubic-bezier(.3,1.4,.5,1)}
+.tg input:checked + i{background:var(--accent)}
+.tg input:checked + i::after{transform:translateX(18px)}
+.tg input:focus-visible + i{outline:2px solid var(--accent); outline-offset:2px}
+.pf-days{display:flex; gap:6px}
+.pf-days button{width:42px; height:42px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--faint); cursor:pointer; font:700 12.5px Archivo,sans-serif}
+.pf-days button.on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+@media (max-width:420px){ .pf-days{gap:4px} .pf-days button{width:38px; height:38px} }
+.pf-venues .s-chip{display:inline-flex; align-items:center; gap:6px}
+.pf-venues .s-chip.neg{background:var(--text); color:var(--ground); border-color:var(--text)}
+.pf-addv{display:flex; gap:8px; margin:0 0 12px}
+.pf-addv input{flex:1; min-width:0; height:42px; padding:0 14px; border-radius:14px; border:1px solid var(--line); background:var(--surface); color:var(--text); font:500 16px Archivo,sans-serif}
+.pf-stats{display:flex; flex-wrap:wrap; gap:8px 22px; margin:0 0 12px; font-size:14px; color:var(--dim)}
+.pf-stats b{color:var(--text); font-size:16px}
+.pf-empty{color:var(--faint); font-size:13.5px; margin:4px 0}
+.pf-btns{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+.pf-btns .s-btn{font-size:13.5px; padding:9px 15px}
+.pf-danger{color:var(--accent)!important}
+@media (max-width:620px){
+  .pf-hero{flex-direction:column; align-items:flex-start; gap:12px}
+  .pf-stat{text-align:left; display:flex; align-items:baseline; gap:10px}
+  .pf-stat b{display:inline; font-size:44px}
+  .pf-card{padding:16px 15px 18px; border-radius:18px}
+  .pf-jump{margin-inline:-20px}
+}
+
 /* nudge: one small question in the page */
 .nudge{display:flex; align-items:center; gap:12px; margin:22px 0 0; padding:12px 12px 12px 14px; border-radius:18px; background:var(--raised); border:1px solid var(--line)}
 .nudge[hidden]{display:none}
@@ -621,6 +732,7 @@ body.setup-open{overflow:hidden}
 .ng-yes,.ng-no{border:0; border-radius:999px; padding:8px 14px; cursor:pointer; font:700 13px Archivo,sans-serif; white-space:nowrap}
 .ng-yes{background:var(--accent); color:var(--accent-ink)}
 .ng-no{background:var(--surface); color:var(--text)}
+@media (max-width:520px){ .nudge{flex-wrap:wrap} .ng-t{flex-basis:calc(100% - 50px)} .ng-yes{margin-left:42px} }
 
 footer{
   margin-top:56px; padding-top:20px; border-top:1px solid var(--line-soft);
@@ -642,7 +754,13 @@ footer a{color:var(--dim)}
 </style>
 
 <div class="wrap">
-<div class="lp-bar"><div class="lp-brand"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><linearGradient id="bar-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8A5C"/><stop offset=".45" stop-color="#F2603C"/><stop offset="1" stop-color="#C9391B"/></linearGradient><radialGradient id="bar-l" cx=".3" cy="0" r=".9"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".22"/><stop offset=".6" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient></defs><rect width="200" height="200" rx="45" fill="url(#bar-g)"/><rect width="200" height="200" rx="45" fill="url(#bar-l)"/><g transform="translate(100 100) scale(1.11) translate(-100 -100)"><path d="M100 164 C78 150 50 112 50 80 C50 54 74 42 100 42 C126 42 150 54 150 80 C150 112 122 150 100 164z" fill="#FFF8F4"/><path d="M89 77 L89 117 L121 97z" fill="#E4502D" stroke="#E4502D" stroke-width="7" stroke-linejoin="round"/></g></svg><span><span id="bar-city">Prague</span> Live</span></div><button type="button" class="lp-taste" id="my-taste" aria-label="My taste and city"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.9"/></svg>My taste</button></div>
+<!-- Page switcher: the floating island, as on Prague Live. -->
+<header class="topnav" id="topnav"><nav class="isle" aria-label="Pages">
+  <div class="isle-brand"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><linearGradient id="bar-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8A5C"/><stop offset=".45" stop-color="#F2603C"/><stop offset="1" stop-color="#C9391B"/></linearGradient><radialGradient id="bar-l" cx=".3" cy="0" r=".9"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".22"/><stop offset=".6" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient></defs><rect width="200" height="200" rx="45" fill="url(#bar-g)"/><rect width="200" height="200" rx="45" fill="url(#bar-l)"/><g transform="translate(100 100) scale(1.11) translate(-100 -100)"><path d="M100 164 C78 150 50 112 50 80 C50 54 74 42 100 42 C126 42 150 54 150 80 C150 112 122 150 100 164z" fill="#FFF8F4"/><path d="M89 77 L89 117 L121 97z" fill="#E4502D" stroke="#E4502D" stroke-width="7" stroke-linejoin="round"/></g></svg><span><span id="bar-city">Prague</span> Live</span></div>
+  <button type="button" class="isle-btn" data-page="live" aria-current="page"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13V8.5M6.3 13V3.5M9.7 13V6.5M13 13V9.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg><span>Live picks</span></button>
+  <button type="button" class="isle-btn" data-page="profile"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.4" r="2.7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M2.8 13.6c.6-2.6 2.7-4.1 5.2-4.1s4.6 1.5 5.2 4.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Profile</span><i class="isle-dot" hidden></i></button>
+</nav></header>
+<div id="page-live">
 <header class="masthead">
   <div class="mast-top">
     <div class="mast-main">
@@ -729,9 +847,11 @@ footer a{color:var(--dim)}
   <span>Source: GoOut</span>
   <span>Your choices are saved on this device only</span>
 </footer>
-<div class="setup" id="setup" role="dialog" aria-modal="true" aria-label="Set up your picks" hidden>
+</div>
+<div id="page-profile" hidden></div>
+<div class="setup" id="setup" role="dialog" aria-modal="true" aria-label="Quick quiz: your picks" hidden>
   <div class="setup-card">
-    <div class="setup-top"><span class="setup-track"><span class="setup-bar" id="setup-bar"></span></span><span class="setup-count" id="setup-count"></span></div>
+    <div class="setup-top"><span class="setup-track"><span class="setup-bar" id="setup-bar"></span></span><span class="setup-count" id="setup-count"></span><button type="button" class="setup-x" id="setup-x" aria-label="Close the quiz" hidden>×</button></div>
     <div class="setup-body" id="setup-body"></div>
     <div class="setup-nav">
       <button type="button" class="s-btn ghost" id="setup-back">Back</button>
@@ -756,7 +876,9 @@ const blank = {starred:[], boost:[], nope:[], view:"foryou", profile:null};
 function load(){
   let saved = {};
   try{ saved = JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){}
-  return Object.assign({}, blank, saved);
+  const out = Object.assign({}, blank, saved);
+  out.profile = upgrade(out.profile);   // a profile from an older version of the page
+  return out;
 }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 let S = load();
@@ -776,16 +898,16 @@ const GENRES = [
   {id: "alt",    label: "Indie & alternative",         tags: ["concert_alternative", "indie"]},
   {id: "pop",    label: "Pop",                         tags: ["pop", "k_pop"]},
   {id: "elec",   label: "Electronic",                  tags: ["electronic", "dance", "trip_hop", "uk_bass", "new_age"]},
-  {id: "club",   label: "Techno, house & club nights", tags: ["party_techno", "party_house", "party_drum_and_bass", "party_edm", "party_trance", "party_disco", "party_dubstep", "party_hardstyle", "party_breakbeat", "party_trap", "party_grime", "jungle"]},
+  {id: "club",   label: "Techno, house & club nights", tags: ["party_techno", "party_house", "party_drum_and_bass", "party_edm", "party_trance", "party_disco", "party_dubstep", "party_hardstyle", "party_breakbeat", "party_trap", "party_grime", "jungle", "clubbing", "tech_house"]},
   {id: "hiphop", label: "Hip hop & rap",               tags: ["hip_hop", "rap", "trap"]},
   {id: "jazz",   label: "Jazz & blues",                tags: ["jazz", "jazz_blues_swing", "blues", "swing"]},
   {id: "folk",   label: "Folk & songwriters",          tags: ["folk", "country", "chanson"]},
-  {id: "soul",   label: "R&B, soul & funk",            tags: ["r_n_b", "soul", "funk"]},
-  {id: "reggae", label: "Reggae & ska",                tags: ["reggae", "ska"]},
+  {id: "soul",   label: "R&B, soul & funk",            tags: ["r_n_b", "soul", "funk", "gospel"]},
+  {id: "reggae", label: "Reggae & ska",                tags: ["reggae", "ska", "party_dub"]},
   {id: "classical", label: "Classical",                tags: ["classical"]},
-  {id: "world",  label: "World & folk traditions",     tags: ["folklore", "latin_american"]},
+  {id: "world",  label: "World & folk traditions",     tags: ["folklore", "latin_american", "clubbing_latin"]},
   {id: "exp",    label: "Experimental & ambient",      tags: ["experimental", "ambient", "noise", "psychedelic"]},
-  {id: "shows",  label: "Film music, oldies & shows",  tags: ["party_oldies", "music_film", "show"]},
+  {id: "shows",  label: "Film music, oldies & shows",  tags: ["party_oldies", "music_film", "show", "musical"]},
 ];
 /* How far For you reaches beyond clear matches. */
 const DISCOVERY = [
@@ -793,22 +915,118 @@ const DISCOVERY = [
   {label: "A bit of both",     note: "Plus promising shows close to your taste.",           min: 1.5, days: 30},
   {label: "Surprise me",       note: "Plus popular shows around your taste, further out.",  min: 0.6, days: 60},
 ];
-function profile(){
-  return S.profile || {city: "prague", trips: true, genres: {}, bands: [], venues: [], discovery: 1};
+
+/* The quiz: fifteen "this or that" answers (either side, or both). Each
+   side lifts its genre groups; a band side also gives that band's gigs a
+   lift. size / known / fest set how big, how far out and how
+   festival-minded the picks are. */
+const QUIZ = [
+  {id: "sound", q: "Guitars or synths?", a: {t: "Guitars", s: "riffs, bands, drums", g: ["rock", "alt", "punk", "metal"]},
+   b: {t: "Synths & beats", s: "electronic, club, hip hop", g: ["elec", "club", "hiphop"]}},
+  {id: "am_dp", band: true, q: "Who would you rather see tonight?", a: {t: "Arctic Monkeys", s: "guitar swagger", g: ["alt", "rock"]},
+   b: {t: "Daft Punk", s: "robots on the dancefloor", g: ["elec", "club"]}},
+  {id: "energy", q: "Loud & wild, or soft & warm?", a: {t: "Loud & wild", s: "mosh pits welcome", g: ["punk", "metal", "rock"]},
+   b: {t: "Soft & warm", s: "voices, strings, quiet rooms", g: ["folk", "jazz", "soul"]}},
+  {id: "place", q: "Where does the night feel right?", a: {t: "A sweaty basement", s: "low ceiling, loud amps", g: ["punk", "metal", "club"]},
+   b: {t: "Open air at sunset", s: "grass, sun, a slow groove", g: ["reggae", "world", "folk"]}},
+  {id: "met_amy", band: true, q: "Pick one for the long drive", a: {t: "Metallica", s: "riffs of steel", g: ["metal", "rock"]},
+   b: {t: "Amy Winehouse", s: "soul with scars", g: ["soul", "jazz"]}},
+  {id: "move", q: "Dance all night, or listen closely?", a: {t: "Dance all night", s: "DJs, beats, sweat", g: ["club", "elec", "pop"]},
+   b: {t: "Listen closely", s: "every note counts", g: ["jazz", "folk", "classical", "exp"]}},
+  {id: "kdot_billie", band: true, q: "Front row for…", a: {t: "Kendrick Lamar", s: "every bar a story", g: ["hiphop"]},
+   b: {t: "Billie Eilish", s: "whispered pop, huge hooks", g: ["pop", "alt"]}},
+  {id: "words", q: "What hooks you first?", a: {t: "The words", s: "lyrics that hit home", g: ["folk", "hiphop", "alt"]},
+   b: {t: "The beat", s: "no words needed", g: ["elec", "club", "jazz"]}},
+  {id: "size", q: "Small club, or big show?", a: {t: "Small club", s: "up close, cheap, new names", g: []},
+   b: {t: "Big show", s: "the bands everyone knows", g: []}},
+  {id: "lucie_yzo", band: true, q: "A Czech night out", a: {t: "Lucie", s: "rock that everyone sings", g: ["rock", "pop"]},
+   b: {t: "Yzomandias", s: "Prague rap royalty", g: ["hiphop"]}},
+  {id: "room", q: "Which room do you walk into?", a: {t: "A concert hall", s: "strings, choirs, silence", g: ["classical", "shows"]},
+   b: {t: "A smoky jazz bar", s: "late sets, brushes on snares", g: ["jazz", "soul"]}},
+  {id: "hoz_fred", band: true, q: "Sunday night soundtrack", a: {t: "Hozier", s: "a voice and a guitar", g: ["folk", "soul", "alt"]},
+   b: {t: "Fred again..", s: "euphoric electronic", g: ["elec", "club"]}},
+  {id: "wild", q: "Forest or city at night?", a: {t: "A forest", s: "wood, wind, voices", g: ["folk", "world", "exp"]},
+   b: {t: "A city at night", s: "neon, concrete, bass", g: ["hiphop", "elec", "club"]}},
+  {id: "fest", q: "Festival weekend or one great gig?", a: {t: "Festival weekend", s: "tents, mud, ten bands a day", g: []},
+   b: {t: "One great gig", s: "your band, your night", g: []}},
+  {id: "known", q: "Bands you know, or surprise me?", a: {t: "Bands I know", s: "only clear matches", g: []},
+   b: {t: "Surprise me", s: "promising new names too", g: []}},
+];
+/* Genre levels: -1 not for me, 0 neutral, 1 like, 2 love. One set by hand
+   (on the Profile page) wins; otherwise it comes from the answers and the
+   favourite artists' genres. Picking a side also tips the other side's
+   genres down a little, so "not for me" can come from the quiz too. */
+function quizGenres(p){
+  const w = {}, add = (g, v) => { w[g] = (w[g] || 0) + v; };
+  for(const a of p.picks || []) (a.genres || []).forEach((g, i) => add(g, i === 0 ? 1 : .5));
+  for(const q of QUIZ){
+    const v = (p.quiz || {})[q.id];
+    if(v === "a" || v === "b"){ q[v].g.forEach(g => add(g, 1)); q[v === "a" ? "b" : "a"].g.forEach(g => add(g, -.4)); }
+    else if(v === "both"){ q.a.g.forEach(g => add(g, .5)); q.b.g.forEach(g => add(g, .5)); }
+  }
+  return w;
+}
+const autoLevel = s => s >= 2 ? 2 : s >= .9 ? 1 : s <= -1.2 ? -1 : 0;
+function genreLevels(p, auto = quizGenres(p)){
+  const out = {};
+  for(const g of GENRES){ const m = (p.genres || {})[g.id]; out[g.id] = m != null ? m : autoLevel(auto[g.id] || 0); }
+  return out;
+}
+const LEVEL_W = {"2": 2, "1": 1.3, "0": 0, "-1": -1.2};
+/* Bands picked in the quiz: their gigs get a lift (less than a favourite). */
+function quizLeans(p){
+  const out = [];
+  for(const q of QUIZ){
+    if(!q.band) continue;
+    const v = (p.quiz || {})[q.id];
+    if(v === "a" || v === "b"){ const w = q[v], o = q[v === "a" ? "b" : "a"]; out.push({name: w.t, w: 3, why: `You picked ${w.t} over ${o.t}`}); }
+    else if(v === "both") for(const s of [q.a, q.b]) out.push({name: s.t, w: 2, why: `You said yes to ${s.t}`});
+  }
+  return out;
+}
+/* The answers that set more than genres. */
+function applyQuiz(p){
+  const d = p.quiz || {};
+  if(d.size) p.size = d.size === "a" ? "small" : d.size === "b" ? "big" : null;
+  if(d.known) p.discovery = d.known === "a" ? 0 : d.known === "b" ? 2 : 1;
+  if(d.fest) p.fest = d.fest === "a" ? 1 : d.fest === "b" ? -1 : 0;
+}
+function blankProfile(){
+  return {city: "prague", trips: true, festivals: true, quiz: {}, quizDone: false, genres: {}, bands: [], picks: [], similar: [],
+          venues: [], avoid: [], discovery: 1, size: null, fest: 0, days: [0, 1, 2, 3, 4, 5, 6], budget: 0, hideSoldOut: false};
+}
+/* A profile from an older version of the page, brought up to date: the five
+   "duels" are now the first quiz answers, and a genre set to 0 meant "not set". */
+function upgrade(p){
+  if(!p) return null;
+  const out = Object.assign(blankProfile(), p);
+  if(p.duels && !p.quiz) out.quiz = Object.assign({}, p.duels);
+  delete out.duels; delete out.liked;
+  out.genres = Object.fromEntries(Object.entries(out.genres || {}).filter(([, v]) => v));
+  return out;
+}
+function profile(){ return S.profile || blankProfile(); }
+/* "790–950" Kč, or euros at about 25 Kč: the cheapest ticket, in Kč. */
+function minPrice(e){
+  const m = /\d+/.exec(e.pricing || "");
+  return m ? Number(m[0]) * (e.currency === "eur" ? 25 : 1) : 0;
 }
 /* Prepared once per render: tag weights, folded band and venue names. */
 function prepared(p = profile()){
-  const tagW = {}, lg = likedGenres(p);
+  const tagW = {}, lv = genreLevels(p);
   for(const g of GENRES){
-    const v = lg[g.id];
-    if(v) for(const t of g.tags) tagW[t] = v > 0 ? 1.4 : -1.2;
+    const w = LEVEL_W[lv[g.id]] || 0;
+    if(w) for(const t of g.tags) tagW[t] = w;
   }
   const labelOf = {};
   for(const g of GENRES) for(const t of g.tags) labelOf[t] = g.label;
   const bandKeys = new Set(p.bands.map(norm));
+  const days = p.days && p.days.length && p.days.length < 7 ? new Set(p.days) : null;
   return {p, tagW, labelOf, bands: p.bands.map(b => ({name: b, key: norm(b)})),
           similar: (p.similar || []).filter(x => !bandKeys.has(norm(x.name))).map(x => ({name: x.name, via: x.via, key: norm(x.name)})),
-          venues: new Set(p.venues.map(norm)), empty: !p.bands.length && !Object.values(lg).some(v => v > 0),
+          leans: quizLeans(p).filter(x => !bandKeys.has(norm(x.name))).map(x => Object.assign(x, {key: norm(x.name)})),
+          venues: new Set(p.venues.map(norm)), avoid: new Set((p.avoid || []).map(norm)), days, budget: p.budget || 0,
+          empty: !p.bands.length && !Object.values(lv).some(v => v > 0),
           disc: DISCOVERY[p.discovery ?? 1] || DISCOVERY[1]};
 }
 
@@ -833,28 +1051,38 @@ function tasteOf(e, P){
   if(hit){ s += 10; t += 10; key = true; reasons.push([10, `You like ${hit.name}`]); }
   else {
     const sim = P.similar.find(b => b.key.length >= 3 && acts.some(a => nameMatch(a, b.key)));
+    const lean = !sim && P.leans.find(b => acts.some(a => nameMatch(a, b.key)));
     if(sim){ s += 4; t += 4; reasons.push([4, `Fans of ${sim.via} like them`]); }
+    else if(lean){ s += lean.w; t += lean.w; reasons.push([lean.w, lean.why]); }
   }
-  if(e.venue && P.venues.has(norm(e.venue))){ s += 3; reasons.push([3, `${e.venue} — a venue you like`]); }
-  let g = 0, best = null;
+  const v = norm(e.venue || "");
+  if(v && P.venues.has(v)){ s += 3; reasons.push([3, `${e.venue} — a venue you like`]); }
+  if(v && P.avoid.has(v)){ s -= 8; t -= 8; }
+  let g = 0, best = null, top = 0;
   for(const tag of e.tags || []){
     const w = P.tagW[tag] || 0;
     g += w;
-    if(w > 0 && !best) best = P.labelOf[tag];
+    if(w > top){ top = w; best = P.labelOf[tag]; }
   }
-  if(g){ s += g * 1.5; t += g * 1.5; if(g > 0 && best) reasons.push([g * 1.5, `${best} — your kind of thing`]); }
+  g = Math.max(-4, Math.min(4, g));
+  if(g){ s += g * 1.5; t += g * 1.5; if(g > 0 && best) reasons.push([g * 1.5, `${best} — ${top >= 2 ? "you love it" : "your kind of thing"}`]); }
   const f = e.followers || 0;
   if(f > 0) s += Math.min(Math.log10(f + 1) / 2, 1) * 1.5;
-  // Small club or big show, from the duels: a nudge, never a filter.
+  // Small club or big show, from the quiz or the profile: a nudge, never a filter.
   if(P.p.size === "small" && f < 60){ s += .8; t += .6; }
   if(P.p.size === "big" && f >= 150){ s += .8; t += .6; }
+  if(e.festival && P.p.fest) s += P.p.fest * 1.5;
+  // Nights you don't go out, tickets over budget: they sink out of For you
+  // (still in Everything and search).
+  if(P.days && !e.festival && !P.days.has(new Date(e.start).getDay())){ s -= 3; t -= 3; }
+  if(P.budget && minPrice(e) > P.budget){ s -= 3; t -= 3; }
   if(e.sold_out) s -= 2;
   if(e.tourist) s -= 8;
   const trip = !e.festival && e.city !== P.p.city;
   if(trip) s -= 3;
   reasons.sort((a, b) => b[0] - a[0]);
   return {score: s, taste: t, why: reasons.length ? reasons[0][1] : null, key, trip,
-          vouched: P.venues.has(norm(e.venue || "")) || f >= 150};
+          vouched: P.venues.has(v) || f >= 150};
 }
 
 /* ---------- add to calendar: Google link or a calendar file ---------- */
@@ -946,15 +1174,12 @@ function listen(a){
   window.open("https://open.spotify.com/search/" + encodeURIComponent(act), "_blank", "noopener");
 }
 
-/* ---------- setup: a one-minute, playful start ----------
-   City -> three artists you love (photos and "fans also like" from Deezer's
-   public catalogue) -> five quick "this or that" duels -> your picks, with a
-   live count of the shows it has found so far. "My taste" later opens an
-   overview where each part can be changed, plus the detailed genre, venue
-   and discovery settings ("fine-tune") for anyone who wants them. */
-const QUICK = ["city", "artists", "duels", "done"];
-const FINE = ["genres", "bands", "venues", "discovery"];
-let draft = null, mode = "quick", step = 0, duelI = 0, back = null;
+/* ---------- the quiz: a one-minute, playful start ----------
+   City, then fifteen "this or that" taps (either side, or both), then the
+   number of shows it found. Nothing to type: favourite artists, venues and
+   the finer settings live on the Profile page, for anyone who wants them.
+   The two-band questions show the bands' photos and can play 30 seconds of
+   each (Deezer's public previews, no account). */
 function allActs(){
   const n = new Map();
   for(const e of EVENTS) for(const a of e.acts || []) n.set(a, (n.get(a) || 0) + 1);
@@ -963,10 +1188,10 @@ function allActs(){
 const ACTS = allActs();
 let actKeys = null;   // folded names of every act in the listings, built on first use
 const playsHere = name => (actKeys || (actKeys = new Set(ACTS.map(norm)))).has(norm(name));
-function topVenues(city){
+function venuesOf(city){
   const n = new Map();
   for(const e of EVENTS) if(e.city === city && !e.tourist && e.venue) n.set(e.venue, (n.get(e.venue) || 0) + 1);
-  return [...n.entries()].sort((a, b) => b[1] - a[1]).slice(0, 24).map(x => x[0]);
+  return [...n.entries()].sort((a, b) => b[1] - a[1]).map(x => x[0]);
 }
 
 /* Deezer: public, no key. Its API sends no CORS headers but answers JSONP. */
@@ -988,91 +1213,95 @@ const DZ_GENRE = {132: "pop", 116: "hiphop", 152: "rock", 165: "soul", 113: "clu
   2: "world", 16: "world", 75: "world", 81: "world", 197: "world"};
 const related = new Map();    // Deezer artist id -> [{name, img}] (this session only)
 
-/* The duels: each side lifts a few genre groups; "both" lifts both a little. */
-const DUELS = [
-  {id: "sound", q: "Guitars or synths?", a: {t: "Guitars", s: "riffs, bands, drums", g: ["rock", "alt", "punk", "metal"]},
-   b: {t: "Synths & beats", s: "electronic, club, hip hop", g: ["elec", "club", "hiphop"]}},
-  {id: "energy", q: "Loud & wild, or soft & warm?", a: {t: "Loud & wild", s: "mosh pits welcome", g: ["punk", "metal", "rock"]},
-   b: {t: "Soft & warm", s: "voices, strings, quiet rooms", g: ["folk", "jazz", "soul"]}},
-  {id: "move", q: "Dance all night, or listen closely?", a: {t: "Dance all night", s: "DJs, beats, sweat", g: ["club", "elec", "pop"]},
-   b: {t: "Listen closely", s: "every note counts", g: ["jazz", "folk", "classical", "exp"]}},
-  {id: "size", q: "Small club, or big show?", a: {t: "Small club", s: "up close, cheap, new names", g: []},
-   b: {t: "Big show", s: "the bands everyone knows", g: []}},
-  {id: "known", q: "Bands you know, or surprise me?", a: {t: "Bands I know", s: "only clear matches", g: []},
-   b: {t: "Surprise me", s: "promising new names too", g: []}},
-];
-/* Genre groups worked out from the picked artists and the duels. A genre set
-   by hand in fine-tune always wins over this. */
-function autoGenres(p){
-  const w = {};
-  const add = (g, v) => { w[g] = (w[g] || 0) + v; };
-  for(const a of p.picks || []) (a.genres || []).forEach((g, i) => add(g, i === 0 ? 1 : .5));
-  for(const d of DUELS){
-    const v = (p.duels || {})[d.id];
-    // "Both" is a light touch: it only tips a genre in alongside another signal.
-    if(v === "a" || v === "both") d.a.g.forEach(g => add(g, v === "both" ? .35 : 1));
-    if(v === "b" || v === "both") d.b.g.forEach(g => add(g, v === "both" ? .35 : 1));
-  }
-  return w;
+/* The quiz bands' photos, looked up once and kept in this browser. */
+const FACE_KEY = "live-picks-faces";
+let FACES = (() => { try{ return JSON.parse(localStorage.getItem(FACE_KEY) || "{}") || {}; }catch(e){ return {}; } })();
+async function bandFace(name){
+  if(name in FACES) return FACES[name];
+  try{
+    const r = await deezer("search/artist", {q: name, limit: 5});
+    const hit = (r.data || []).filter(a => norm(a.name) === norm(name)).sort((a, b) => (b.nb_fan || 0) - (a.nb_fan || 0))[0];
+    FACES[name] = hit ? hit.picture_big : null;
+    try{ localStorage.setItem(FACE_KEY, JSON.stringify(FACES)); }catch(e){}
+  }catch(e){ return null; }   // offline: try again next time
+  return FACES[name];
 }
-function likedGenres(p){
-  const auto = autoGenres(p), out = {};
-  for(const g of GENRES){
-    const manual = (p.genres || {})[g.id];
-    out[g.id] = manual ? manual : (auto[g.id] || 0) >= .6 ? 1 : 0;
-  }
-  return out;
+function loadFaces(){
+  for(const q of QUIZ) if(q.band) for(const s of [q.a, q.b])
+    if(!(s.t in FACES)) bandFace(s.t).then(() => { if(qz && QUIZ[qz.i - 1] === q) drawQuiz(); });
 }
-function applyDuels(p){
-  const d = p.duels || {};
-  p.size = d.size === "a" ? "small" : d.size === "b" ? "big" : null;
-  if(d.known) p.discovery = d.known === "a" ? 0 : d.known === "b" ? 2 : 1;
+/* 30 seconds of a band: Deezer's preview of their best-known track. */
+let hearing = null;   // {name, audio}
+function stopHearing(){
+  if(!hearing) return;
+  hearing.audio.pause(); hearing = null;
+  document.querySelectorAll(".s-hear.on").forEach(b => b.classList.remove("on"));
 }
-/* How many of this city's upcoming shows the draft would put in For you. */
+async function hear(btn){
+  const name = btn.dataset.hear;
+  if(hearing && hearing.name === name){ stopHearing(); return; }
+  stopHearing();
+  btn.classList.add("busy");
+  try{
+    const r = await deezer("search", {q: `artist:"${name}"`, limit: 10});
+    const tr = (r.data || []).find(x => x.preview && norm(x.artist && x.artist.name) === norm(name));
+    if(!tr) throw new Error("none");
+    const audio = new Audio(tr.preview);
+    hearing = {name, audio};
+    audio.addEventListener("ended", stopHearing);
+    await audio.play();
+    btn.classList.add("on");
+  }catch(e){ hearing = null; toast(`Couldn't play ${name} right now.`, 3000); }
+  btn.classList.remove("busy");
+}
+const PLAY_I = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10l8.5-5z" fill="currentColor"/></svg>';
+const STOP_I = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="4" width="8" height="8" rx="1.5" fill="currentColor"/></svg>';
+
+/* How many of this city's upcoming shows a profile puts in For you. */
 function forYouCount(p){
   const PP = prepared(p), now = Date.now(), cutoff = now - 3 * 36e5, discEnd = now + PP.disc.days * 864e5;
   let n = 0;
   for(const e of EVENTS){
     const t0 = new Date(e.start).getTime();
     if(t0 < cutoff || e.tourist || e.cancelled || e.festival || e.city !== p.city) continue;
+    if(p.hideSoldOut && e.sold_out) continue;
     const t = tasteOf(e, PP);
     if(t.taste >= META.relevant_min || (!PP.empty && t.taste >= PP.disc.min && t.vouched && t0 <= discEnd)) n++;
   }
   return n;
 }
 
-function blankProfile(){ return {city: "prague", trips: true, genres: {}, bands: [], venues: [], discovery: 1, picks: [], similar: [], duels: {}}; }
-function openSetup(){
-  draft = Object.assign(blankProfile(), JSON.parse(JSON.stringify(profile())));
-  if(S.profile){ mode = "hub"; step = 0; } else { mode = "quick"; step = 0; }
-  duelI = 0; back = null;
+let qz = null;   // {draft, i}: i = 0 city, 1..15 a question, 16 done
+const Q_DONE = QUIZ.length + 1;
+function openQuiz(){
+  qz = {draft: Object.assign(blankProfile(), JSON.parse(JSON.stringify(profile()))), i: 0};
   document.getElementById("setup").hidden = false;
   document.body.classList.add("setup-open");
-  drawSetup();
+  loadFaces();
+  drawQuiz();
 }
-function closeSetup(){
+function closeQuiz(){
+  stopHearing(); qz = null;
   document.getElementById("setup").hidden = true;
   document.body.classList.remove("setup-open");
 }
-function finish(msg){
+function finishQuiz(to){
   const first = !S.profile;
-  applyDuels(draft);
-  S.profile = draft; S.view = "foryou"; shown = {};
-  save(); closeSetup(); render(); window.scrollTo({top: 0});
-  toast(msg || (first ? "Your picks are ready. Star shows and they get even better." : "Picks updated."), 5000, null, "success");
+  const p = qz.draft;
+  p.quizDone = true; applyQuiz(p);
+  S.profile = p; S.view = "foryou"; shown = {};
+  save(); closeQuiz(); render();
+  showPage(to || "live");
+  window.scrollTo({top: 0});
+  if(to !== "profile") toast(first ? "Your picks are ready. Star shows and they get even better." : "Picks updated.", 5000, null, "success");
 }
-function chipBtn(attr, value, label, state){
-  return `<button type="button" class="s-chip${state > 0 ? " on" : state < 0 ? " off" : ""}" ${attr}="${esc(value)}">`
-       + `${state > 0 ? "♥ " : state < 0 ? "✕ " : ""}${esc(label)}</button>`;
-}
-const face = (img, name, cls = "s-face") => img ? `<img class="${cls}" src="${esc(img)}" alt="" loading="lazy">` : `<span class="${cls} mono">${esc((name || "?").slice(0, 1))}</span>`;
 function paintCount(){
   const el = document.getElementById("setup-count");
-  if(!el) return;
-  const p = Object.assign({}, draft); applyDuels(p);
-  const started = p.bands.length || Object.keys(p.duels || {}).length || Object.values(p.genres || {}).some(Boolean);
-  el.hidden = !started;
-  if(!started) return;
+  if(!el || !qz) return;
+  const p = Object.assign({}, qz.draft); applyQuiz(p);
+  const started = Object.keys(p.quiz || {}).length || p.bands.length;
+  el.hidden = !started || qz.i === Q_DONE;
+  if(el.hidden) return;
   const n = forYouCount(p);
   if(el.dataset.n !== String(n)){
     el.dataset.n = n;
@@ -1080,85 +1309,333 @@ function paintCount(){
     el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
   }
 }
-function drawSetup(){
-  const box = document.getElementById("setup-body");
-  const steps = mode === "fine" ? FINE : QUICK, k = mode === "hub" ? "hub" : steps[step];
-  const prog = mode === "hub" ? 1 : k === "duels" ? (2 + duelI / DUELS.length) / 4 : (step + 1) / steps.length;
-  document.getElementById("setup-bar").style.width = (prog * 100) + "%";
-  const nav = {back: false, skip: false, next: "Next"};
+function quizSide(q, k, v){
+  const s = q[k], on = v === k || v === "both";
+  const face = q.band ? FACES[s.t] : null;
+  return `<button type="button" class="s-side ${k}${face ? " photo" : ""}${on ? " on" : ""}" data-pick="${k}"${face ? ` style="background-image:url('${esc(face)}')"` : ""}>`
+    + (q.band ? `<span class="s-hear${hearing && hearing.name === s.t ? " on" : ""}" role="button" tabindex="0" data-hear="${esc(s.t)}" aria-label="Hear 30 seconds of ${esc(s.t)}" title="Hear 30 seconds">${hearing && hearing.name === s.t ? STOP_I : PLAY_I}</span>` : "")
+    + `<b>${esc(s.t)}</b><span>${esc(s.s)}</span></button>`;
+}
+function drawQuiz(){
+  if(!qz) return;
+  const box = document.getElementById("setup-body"), d = qz.draft, i = qz.i;
+  document.getElementById("setup-bar").style.width = (i / Q_DONE * 100) + "%";
+  document.getElementById("setup-x").hidden = !S.profile;
+  const nav = {back: i > 0, skip: false, next: null};
   let html = "";
-  if(k === "hub"){
-    const lg = likedGenres(draft), likes = GENRES.filter(g => lg[g.id] > 0).map(g => g.label), d = draft.duels || {};
-    const vibe = DUELS.filter(x => d[x.id]).map(x => d[x.id] === "both" ? `${x.a.t} & ${x.b.t.toLowerCase()}` : x[d[x.id]].t);
-    html = `<h2>My taste</h2><p class="s-note">What Live Picks looks for. Change any part.</p>
-      <div class="s-hub">
-        <button type="button" class="s-row" data-edit="city"><span><small>City</small>${esc(CITY_TITLE[draft.city])}${draft.trips ? " · plus trips & festivals" : ""}</span><i>Change</i></button>
-        <button type="button" class="s-row" data-edit="artists"><span><small>Artists</small>${draft.bands.length ? `<span class="s-faces">${(draft.picks || []).slice(0, 5).map(a => face(a.img, a.name)).join("")}</span>${esc(draft.bands.slice(0, 4).join(", "))}${draft.bands.length > 4 ? ` +${draft.bands.length - 4}` : ""}` : "None yet"}</span><i>Edit</i></button>
-        <button type="button" class="s-row" data-edit="duels"><span><small>Your vibe</small>${vibe.length ? esc(vibe.join(" · ")) : "Not played yet"}</span><i>${vibe.length ? "Play again" : "Play"}</i></button>
-        <button type="button" class="s-row" data-edit="fine"><span><small>Fine-tune</small>${likes.length ? esc(likes.slice(0, 4).join(", ")) + (likes.length > 4 ? ` +${likes.length - 4}` : "") : "Genres"} · venues · ${esc(DISCOVERY[draft.discovery ?? 1].label.toLowerCase())}</span><i>Open</i></button>
-      </div>`;
-    nav.next = "Done";
-  } else if(k === "city"){
+  if(i === 0){
     const count = c => EVENTS.filter(e => e.city === c && !e.tourist).length;
-    html = `<h2>Where do you go out?</h2><p class="s-note">Pick your city. Everything else counts as a trip.</p><div class="s-cards s-city">`
-      + ["prague", "brno", "bratislava"].map(c => `<button type="button" class="s-card${draft.city === c ? " on" : ""}" data-city="${c}"><b>${CITY_TITLE[c]}</b><span>${count(c)} upcoming shows</span></button>`).join("")
-      + `</div><label class="s-check"><input type="checkbox" id="s-trips"${draft.trips ? " checked" : ""}> Also show festivals and trips to the other cities</label>`;
-  } else if(k === "artists"){
-    const picks = draft.picks || [];
-    const need = Math.max(0, 3 - draft.bands.length);
-    html = `<h2>Three artists you love</h2><p class="s-note">${need ? `Search and tap. ${need === 3 ? "Three" : need === 2 ? "Two more" : "One more"} and we're off.` : "Great. Add more, or tap a few of their friends below."}</p>
-      <div class="s-search"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M10.4 10.4l3.4 3.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><input type="search" id="s-artist" autocomplete="off" spellcheck="false" placeholder="Muse, Dua Lipa, Mňága a Žďorp…" aria-label="Search for an artist"></div>
-      <div class="s-results" id="s-results"></div>
-      <div class="s-picked">${draft.bands.map(b => { const p = picks.find(x => x.name === b) || (draft.liked || []).find(x => x.name === b);
-        return `<button type="button" class="s-pick" data-unband="${esc(b)}" title="Remove ${esc(b)}">${face(p && p.img, b)}<span>${esc(b)}</span><i aria-hidden="true">×</i></button>`; }).join("")}</div>
-      ${picks.map(p => { const rel = (related.get(p.id) || []).filter(r => !draft.bands.includes(r.name)).slice(0, 8);
-        return rel.length ? `<div class="s-rel"><p>Fans of <b>${esc(p.name)}</b> also like</p><div class="s-bubbles">${rel.map(r => `<button type="button" class="s-bub" data-like="${esc(r.name)}" data-img="${esc(r.img || "")}">${face(r.img, r.name)}<span>${esc(r.name)}</span></button>`).join("")}</div></div>` : ""; }).join("")}`;
-    nav.back = mode === "quick"; nav.skip = !draft.bands.length; nav.next = draft.bands.length ? "Next" : "Next";
-  } else if(k === "duels"){
-    const d = DUELS[duelI], v = (draft.duels || {})[d.id];
-    html = `<h2>This or that?</h2><p class="s-note">Five quick ones. Go with your gut.</p>
-      <div class="s-duel" data-d="${d.id}">
-        <div class="s-q">${esc(d.q)}<span>${duelI + 1} / ${DUELS.length}</span></div>
-        <div class="s-vs">
-          <button type="button" class="s-side a${v === "a" || v === "both" ? " on" : ""}" data-pick="a"><b>${esc(d.a.t)}</b><span>${esc(d.a.s)}</span></button>
-          <button type="button" class="s-side b${v === "b" || v === "both" ? " on" : ""}" data-pick="b"><b>${esc(d.b.t)}</b><span>${esc(d.b.s)}</span></button>
-        </div>
+    html = `<h2>Where do you go out?</h2><p class="s-note">Pick your city, then fifteen quick taps. Go with your gut; you can change everything later on your Profile.</p><div class="s-cards s-city">`
+      + ["prague", "brno", "bratislava"].map(c => `<button type="button" class="s-card${d.city === c ? " on" : ""}" data-city="${c}"><b>${CITY_TITLE[c]}</b><span>${count(c)} upcoming shows</span></button>`).join("")
+      + `</div><label class="s-check"><input type="checkbox" id="s-trips"${d.trips ? " checked" : ""}> Also show festivals and trips to the other cities</label>`;
+    nav.next = "Start";
+  } else if(i < Q_DONE){
+    const q = QUIZ[i - 1], v = (d.quiz || {})[q.id];
+    html = `<div class="s-duel" data-q="${q.id}">
+        <div class="s-q">${esc(q.q)}<span>${i} / ${QUIZ.length}</span></div>
+        <div class="s-vs">${quizSide(q, "a", v)}${quizSide(q, "b", v)}</div>
         <button type="button" class="s-both${v === "both" ? " on" : ""}" data-pick="both">Both!</button>
       </div>`;
-    nav.back = true; nav.skip = true; nav.next = null;
-  } else if(k === "done"){
-    const p = Object.assign({}, draft); applyDuels(p);
-    const lg = likedGenres(p), likes = GENRES.filter(g => lg[g.id] > 0).map(g => g.label);
-    html = `<div class="s-done"><div class="s-big" id="s-big">${forYouCount(p)}</div><h2>shows for you in ${esc(CITY_TITLE[draft.city])}</h2>
-      <p class="s-note">${draft.bands.length ? `Matching ${esc(draft.bands.slice(0, 3).join(", "))}${draft.bands.length > 3 ? " and more" : ""}` : "From your answers"}${likes.length ? `, plus ${esc(likes.slice(0, 3).join(", ").toLowerCase())}` : ""}${p.size === "small" ? ", small clubs first" : p.size === "big" ? ", big shows first" : ""}. Every star you give makes it sharper.</p>
-      <button type="button" class="s-link" data-edit="fine">Fine-tune genres & venues</button></div>`;
-    nav.back = true; nav.next = "Show my picks";
-  } else if(k === "genres"){
-    const lg = likedGenres(draft);
-    html = `<h2>Genres</h2><p class="s-note">Tap once for ♥ like, twice for ✕ not for me, three times to clear. Pre-filled from your artists and answers.</p><div class="s-chips">`
-      + GENRES.map(g => chipBtn("data-genre", g.id, g.label, (draft.genres || {})[g.id] || (lg[g.id] > 0 ? 1 : 0))).join("") + `</div>`;
-    nav.back = true;
-  } else if(k === "bands"){
-    html = `<h2>More bands</h2><p class="s-note">Anyone else to watch for, by name. Matched against every announcement.</p>`
-      + `<div class="s-add"><input type="search" id="s-band" autocomplete="off" placeholder="Type a band or artist…" aria-label="Band or artist"><button type="button" id="s-band-add">Add</button></div>`
-      + `<div class="s-sugg" id="s-sugg"></div><div class="s-chips" id="s-bands">`
-      + draft.bands.map(b => `<button type="button" class="s-chip on" data-band="${esc(b)}">${esc(b)} ✕</button>`).join("") + `</div>`;
-    nav.back = true; nav.skip = true;
-  } else if(k === "venues"){
-    html = `<h2>Venues you like</h2><p class="s-note">Shows there get a boost. The busiest venues in ${CITY_TITLE[draft.city]}:</p><div class="s-chips">`
-      + topVenues(draft.city).map(v => chipBtn("data-venue", v, v, draft.venues.includes(v) ? 1 : 0)).join("") + `</div>`;
-    nav.back = true; nav.skip = true;
-  } else if(k === "discovery"){
-    html = `<h2>How adventurous?</h2><p class="s-note">How far For you reaches beyond clear matches.</p><div class="s-cards">`
-      + DISCOVERY.map((d, i) => `<button type="button" class="s-card${(draft.discovery ?? 1) === i ? " on" : ""}" data-disc="${i}"><b>${d.label}</b><span>${d.note}</span></button>`).join("") + `</div>`;
-    nav.back = true; nav.next = back === "hub" ? "Back to my taste" : "Show my picks";
+    nav.skip = true;
+  } else {
+    const p = Object.assign({}, d); applyQuiz(p);
+    const lv = genreLevels(p), love = GENRES.filter(g => lv[g.id] === 2).map(g => g.label), like = GENRES.filter(g => lv[g.id] === 1).map(g => g.label);
+    const bits = [];
+    if(love.length) bits.push(`you love ${love.slice(0, 3).join(", ").toLowerCase()}`);
+    if(like.length) bits.push(`you like ${like.slice(0, 3).join(", ").toLowerCase()}`);
+    if(p.size) bits.push(p.size === "small" ? "small clubs first" : "big shows first");
+    html = `<div class="s-done"><div class="s-big">${forYouCount(p)}</div><h2>shows for you in ${esc(CITY_TITLE[d.city])}</h2>
+      <p class="s-note">${bits.length ? "From your answers: " + esc(bits.join("; ")) + "." : "Skipped it all? Fine: popular shows first, and every star you give teaches it more."}</p>
+      <div class="s-tip"><span aria-hidden="true">✦</span><span><b>Want sharper picks?</b> Add a few favourite artists and venues on your Profile. Everything you just answered is there too, ready to tweak.</span></div>
+      <p><button type="button" class="pf-link" data-qz="profile">Fine-tune my profile</button></p></div>`;
+    nav.next = "Show my picks";
   }
   box.innerHTML = html;
   const bk = document.getElementById("setup-back"), sk = document.getElementById("setup-skip"), nx = document.getElementById("setup-next");
   bk.hidden = !nav.back; sk.hidden = !nav.skip; nx.hidden = !nav.next; nx.textContent = nav.next || "";
-  if(back === "hub" && mode !== "hub" && k !== "duels" && mode !== "fine") nx.textContent = "Back to my taste";
   paintCount();
-  if(k === "artists") setTimeout(() => { const i = document.getElementById("s-artist"); if(i && matchMedia("(pointer:fine)").matches) i.focus(); }, 50);
+}
+function quizGo(i){ stopHearing(); qz.i = Math.max(0, Math.min(Q_DONE, i)); drawQuiz(); }
+function quizClick(e){
+  const t = e.target;
+  if(t.closest("#setup-x")){ closeQuiz(); return; }
+  const h = t.closest("[data-hear]");
+  if(h){ e.stopPropagation(); hear(h).then(() => { h.innerHTML = hearing && hearing.name === h.dataset.hear ? STOP_I : PLAY_I; }); return; }
+  const c = t.closest("[data-city]");
+  if(c){ qz.draft.city = c.dataset.city; qz.draft.venues = []; qz.draft.avoid = []; drawQuiz(); setTimeout(() => qz && qz.i === 0 && quizGo(1), 260); return; }
+  if(t.id === "s-trips"){ qz.draft.trips = qz.draft.festivals = t.checked; paintCount(); return; }
+  const pk = t.closest("[data-pick]");
+  if(pk){
+    const q = QUIZ[qz.i - 1];
+    qz.draft.quiz = Object.assign({}, qz.draft.quiz, {[q.id]: pk.dataset.pick});
+    drawQuiz();
+    const at = qz.i;
+    setTimeout(() => { if(qz && qz.i === at) quizGo(at + 1); }, 320);
+    return;
+  }
+  if(t.closest("[data-qz='profile']")){ finishQuiz("profile"); return; }
+  if(t.closest("#setup-back")){ quizGo(qz.i - 1); return; }
+  if(t.closest("#setup-skip")){ quizGo(qz.i + 1); return; }
+  if(t.closest("#setup-next")){ if(qz.i === Q_DONE) finishQuiz("live"); else quizGo(qz.i + 1); }
+}
+
+/* ---------- pages: Live picks and Profile ----------
+   The island at the top switches them; #profile in the address opens the
+   Profile (so the back button and a bookmark work). */
+const PAGES = ["live", "profile"];
+let page = "live", liveDirty = false;
+const pageScroll = {};
+const dock = document.getElementById("topnav"), docRoot = document.documentElement;
+function paintDock(){
+  for(const b of dock.querySelectorAll(".isle-btn"))
+    if(b.dataset.page === page) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  // a dot on Profile until the quiz has been played
+  dock.querySelector(".isle-btn[data-page='profile'] .isle-dot").hidden = !!(S.profile && S.profile.quizDone) || !S.profile;
+}
+function showPage(p, push = true){
+  if(!PAGES.includes(p)) p = "live";
+  if(p === page){ if(push) window.scrollTo({top: 0, behavior: "smooth"}); return; }
+  const dir = PAGES.indexOf(p) > PAGES.indexOf(page) ? 1 : -1;
+  pageScroll[page] = window.scrollY;
+  hideToast(); closeCalPop(); stopHearing();
+  document.getElementById("page-" + page).hidden = true;
+  page = p;
+  if(p === "profile") drawProfile();
+  else if(liveDirty){ liveDirty = false; render(); }
+  const el = document.getElementById("page-" + p);
+  el.hidden = false;
+  el.style.setProperty("--pg-from", dir * 40 + "px");
+  el.classList.remove("pg-in"); void el.offsetWidth; el.classList.add("pg-in");
+  window.scrollTo(0, pageScroll[p] || 0);
+  paintDock(); setNavAway(false);
+  if(p === "live") paintChips(true);
+  if(push) history.pushState(null, "", p === "profile" ? "#profile" : location.pathname + location.search);
+}
+dock.addEventListener("click", e => { const b = e.target.closest(".isle-btn"); if(b) showPage(b.dataset.page); });
+addEventListener("popstate", () => showPage(location.hash === "#profile" ? "profile" : "live", false));
+/* Heights for the sticky bars under the island, measured. */
+function measureNav(){
+  const was = dock.classList.contains("small");
+  dock.classList.add("measuring");
+  dock.classList.remove("small"); const full = dock.offsetHeight;
+  dock.classList.add("small"); const slim = dock.offsetHeight;
+  dock.classList.toggle("small", was); void dock.offsetWidth;
+  dock.classList.remove("measuring");
+  docRoot.style.setProperty("--nav-full", full + "px");
+  docRoot.style.setProperty("--nav-h", slim + "px");
+}
+const phoneNav = matchMedia("(max-width:759px)");
+let navY = window.scrollY, navRun = 0;
+function setNavAway(on){
+  if(dock.classList.contains("away") === on) return;
+  dock.classList.toggle("away", on);
+  docRoot.classList.toggle("nav-away", on);
+}
+addEventListener("scroll", () => {
+  const y = window.scrollY, dy = y - navY;
+  navY = y;
+  dock.classList.toggle("small", y > 40);
+  const busy = !!qz || (document.activeElement && document.activeElement.matches && document.activeElement.matches("input"));
+  if(!phoneNav.matches || y < 140 || busy){ navRun = 0; setNavAway(false); return; }
+  // Add up moves in one direction, so a jittery finger doesn't flicker it.
+  navRun = Math.sign(dy) === Math.sign(navRun) ? navRun + dy : dy;
+  if(navRun > 28) setNavAway(true);
+  else if(navRun < -20) setNavAway(false);
+}, {passive: true});
+addEventListener("resize", measureNav);
+
+/* ---------- the Profile page ----------
+   Everything Live picks looks for, each part editable; changes save at
+   once and the For you count at the top follows them. Drawn card by card,
+   so typing in a search box never loses its place. */
+const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+const BUDGETS = [[0, "Any"], [300, "Up to 300 Kč"], [600, "600 Kč"], [1000, "1,000 Kč"]];
+const PF_CARDS = [["city", "City"], ["answers", "Answers"], ["genres", "Genres"], ["artists", "Artists"], ["venues", "Venues"], ["style", "Picks style"], ["learned", "Learned"], ["device", "Devices"]];
+function pfCommit(cards){
+  save(); shown = {}; liveDirty = true;
+  for(const c of [].concat(cards || [])) drawCard(c);
+  paintStat();
+}
+function seg(attr, opts, cur, label){
+  return `<div class="seg" role="group" aria-label="${esc(label)}">` + opts.map(([v, t, cls]) =>
+    `<button type="button" ${attr}="${esc(v)}" class="${String(cur) === String(v) ? "on" : ""}${cls ? " " + cls : ""}" aria-pressed="${String(cur) === String(v)}">${esc(t)}</button>`).join("") + `</div>`;
+}
+function toggleRow(key, label, note, on){
+  return `<label class="tg"><span>${esc(label)}${note ? `<small>${esc(note)}</small>` : ""}</span><input type="checkbox" data-tg="${key}"${on ? " checked" : ""}><i aria-hidden="true"></i></label>`;
+}
+function paintStat(){
+  const b = document.getElementById("pf-n");
+  if(!b) return;
+  const n = String(forYouCount(profile()));
+  if(b.textContent !== n){ b.textContent = n; b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }
+  document.getElementById("pf-city-name").textContent = CITY_TITLE[profile().city];
+}
+function drawProfile(){
+  if(!S.profile) S.profile = blankProfile();
+  const p = S.profile;
+  document.getElementById("page-profile").innerHTML = `<div class="pf">
+    <div class="pf-hero"><div><p class="eyebrow">Your profile</p><h1>What Live Picks looks for</h1>
+      <p class="tagline">Everything here shapes your Live picks. Change anything; it saves as you go, on this device.</p></div>
+      <div class="pf-stat"><b id="pf-n"></b><span>shows for you<br>in <span id="pf-city-name"></span></span></div></div>
+    <div class="pf-actions"><button type="button" class="s-btn" data-pf="quiz">${p.quizDone ? "Replay the quiz" : "Play the 1-minute quiz"}</button>
+      <button type="button" class="s-btn ghost" data-pf="live">See my picks →</button></div>
+    <nav class="pf-jump" aria-label="Profile sections">${PF_CARDS.map(([id, t]) => `<a href="#pf-${id}" data-jump="${id}">${t}</a>`).join("")}</nav>
+    ${PF_CARDS.map(([id]) => `<section class="pf-card" id="pf-${id}"></section>`).join("")}</div>`;
+  for(const [id] of PF_CARDS) drawCard(id);
+  paintStat();
+}
+function drawCard(id){
+  const box = document.getElementById("pf-" + id);
+  if(!box) return;
+  const p = profile();
+  let h = "";
+  if(id === "city"){
+    const count = c => EVENTS.filter(e => e.city === c && !e.tourist).length;
+    const others = ["prague", "brno", "bratislava"].filter(c => c !== p.city).map(c => CITY_TITLE[c]).join(" & ");
+    h = `<div class="pf-h"><h2>City</h2></div><p class="pf-note">Where you go out. Shows elsewhere count as trips.</p>
+      <div class="pf-cities">${["prague", "brno", "bratislava"].map(c => `<button type="button" class="s-card${p.city === c ? " on" : ""}" data-pcity="${c}"><b>${CITY_TITLE[c]}</b><span>${count(c)} shows</span></button>`).join("")}</div>
+      ${toggleRow("trips", `Trips to ${others}`, "Their best shows, in Worth the trip", p.trips)}
+      ${toggleRow("festivals", "Festivals", "Their own list, best first", p.festivals !== false)}`;
+  } else if(id === "answers"){
+    const n = Object.keys(p.quiz || {}).length;
+    h = `<div class="pf-h"><h2>Your answers</h2><button type="button" class="pf-link" data-pf="quiz">Replay</button></div>
+      <p class="pf-note">${n ? `${n} of ${QUIZ.length} answered.` : "Not played yet."} Change any answer here; tap the chosen one again to clear it.</p>`
+      + QUIZ.map(q => `<div class="pf-row stack"><span>${esc(q.q)}</span>` + seg(`data-qa="${q.id}" data-v`, [["a", q.a.t], ["both", "Both"], ["b", q.b.t]], (p.quiz || {})[q.id] || "", q.q).replace('class="seg"', 'class="seg seg-q"') + `</div>`).join("");
+  } else if(id === "genres"){
+    const auto = quizGenres(p), lv = genreLevels(p, auto), manual = Object.keys(p.genres || {}).length;
+    h = `<div class="pf-h"><h2>Genres</h2>${manual ? `<button type="button" class="pf-link" data-pf="genres-reset">Back to my answers</button>` : ""}</div>
+      <p class="pf-note">Love counts most. <b>No</b> sinks a genre out of For you (still in Everything). <span style="color:var(--amber)">Amber</span> notes are worked out from your answers and artists; set one yourself and it sticks.</p>
+      <div class="pf-genres">` + GENRES.map(g => {
+        const set = (p.genres || {})[g.id] != null, v = lv[g.id];
+        const note = set ? "set by you" : v ? "from your answers" : "";
+        return `<div class="pf-row"><span>${esc(g.label)}${note ? `<small class="${set ? "" : "auto"}">${note}</small>` : ""}</span>`
+          + seg(`data-gl="${g.id}" data-v`, [["-1", "No", "neg"], ["0", "–", "mid"], ["1", "Like"], ["2", "Love"]], v, g.label) + `</div>`;
+      }).join("") + `</div>`;
+  } else if(id === "artists"){
+    const picks = p.picks || [];
+    const upcoming = name => EVENTS.filter(e => new Date(e.start).getTime() > Date.now() - 3 * 36e5 && (e.acts || []).some(a => nameMatch(norm(a), norm(name)))).length;
+    h = `<div class="pf-h"><h2>Favourite artists</h2></div>
+      <p class="pf-note">The strongest signal there is: any show by them goes straight to the top, and their circle ("fans also like") gets a lift too.</p>
+      <div class="s-search"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M10.4 10.4l3.4 3.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><input type="search" id="s-artist" autocomplete="off" spellcheck="false" placeholder="Muse, Dua Lipa, Mňága a Žďorp…" aria-label="Search for an artist"></div>
+      <div class="s-results" id="s-results"></div>
+      <div class="s-picked">${p.bands.length ? p.bands.map(b => { const k = picks.find(x => x.name === b), n = upcoming(b);
+        return `<button type="button" class="s-pick" data-unband="${esc(b)}" title="Remove ${esc(b)}">${face(k && k.img, b)}<span>${esc(b)}</span>${n ? `<small>${n} show${n > 1 ? "s" : ""}</small>` : ""}<i aria-hidden="true">×</i></button>`; }).join("")
+        : `<p class="pf-empty">None yet. Search above: three or four make a big difference.</p>`}</div>
+      ${picks.slice(-3).map(k => { const rel = (related.get(k.id) || []).filter(r => !p.bands.some(b => norm(b) === norm(r.name))).slice(0, 8);
+        return rel.length ? `<div class="s-rel"><p>Fans of <b>${esc(k.name)}</b> also like</p><div class="s-bubbles">${rel.map(r => `<button type="button" class="s-bub" data-like="${esc(r.name)}" data-img="${esc(r.img || "")}">${face(r.img, r.name)}<span>${esc(r.name)}</span></button>`).join("")}</div></div>` : ""; }).join("")}`;
+  } else if(id === "venues"){
+    const top = venuesOf(p.city), marked = [...p.venues, ...(p.avoid || [])];
+    const list = [...marked.filter(v => !top.slice(0, 24).includes(v)), ...top.slice(0, 24)];
+    const state = v => p.venues.includes(v) ? 1 : (p.avoid || []).includes(v) ? -1 : 0;
+    h = `<div class="pf-h"><h2>Venues</h2></div>
+      <p class="pf-note">Tap once for ♥ (shows there get a lift), twice for ✕ (they sink), again to clear. The busiest in ${CITY_TITLE[p.city]}, or find another:</p>
+      <div class="pf-addv"><input type="search" id="pf-venue" list="pf-venue-list" autocomplete="off" placeholder="Any venue in ${esc(CITY_TITLE[p.city])}…" aria-label="Find a venue"><button type="button" class="s-btn" data-pf="venue-add">♥ Add</button></div>
+      <datalist id="pf-venue-list">${top.map(v => `<option value="${esc(v)}">`).join("")}</datalist>
+      <div class="s-chips pf-venues">${list.map(v => { const s = state(v);
+        return `<button type="button" class="s-chip${s > 0 ? " on" : s < 0 ? " neg" : ""}" data-venue="${esc(v)}">${s > 0 ? "♥ " : s < 0 ? "✕ " : ""}${esc(v)}</button>`; }).join("")}</div>`;
+  } else if(id === "style"){
+    const disc = p.discovery ?? 1;
+    h = `<div class="pf-h"><h2>Picks style</h2></div><p class="pf-note">How For you chooses. A show left out here is still in Everything and in search.</p>
+      <div class="pf-row stack"><span>How adventurous<small>${esc(DISCOVERY[disc].note)}</small></span>${seg("data-disc", DISCOVERY.map((d, i) => [i, d.label]), disc, "How adventurous")}</div>
+      <div class="pf-row stack"><span>Show size<small>A nudge, never a filter</small></span>${seg("data-size", [["small", "Small clubs"], ["", "Any"], ["big", "Big shows"]], p.size || "", "Show size")}</div>
+      <div class="pf-row stack"><span>Festivals<small>How many make your list</small></span>${seg("data-fest", [["-1", "Fewer"], ["0", "Normal"], ["1", "More"]], p.fest || 0, "Festivals")}</div>
+      <div class="pf-row stack"><span>Nights out<small>Shows on other days drop out of For you</small></span><div class="pf-days" role="group" aria-label="Days you go out">${DAY_ORDER.map(d => `<button type="button" data-day="${d}" class="${(p.days || []).includes(d) ? "on" : ""}" aria-pressed="${(p.days || []).includes(d)}">${DAY[d].slice(0, 2)}</button>`).join("")}</div></div>
+      <div class="pf-row stack"><span>Ticket budget<small>Pricier shows drop out of For you (€ at about 25 Kč)</small></span>${seg("data-budget", BUDGETS, p.budget || 0, "Ticket budget")}</div>
+      ${toggleRow("hideSoldOut", "Hide sold-out shows", "Unless you starred them", p.hideSoldOut)}`;
+  } else if(id === "learned"){
+    h = `<div class="pf-h"><h2>Learned from you</h2></div>
+      <p class="pf-note">Stars and ✕ teach the list as you go: a starred show lifts every later gig by its headliner and, from two stars, its genres; ✕ sinks that show and, gently, its acts.</p>
+      <div class="pf-stats"><span><b>${S.starred.length}</b> starred</span><span><b>${S.nope.length}</b> not interested</span><span><b>${S.boost.length}</b> artists lifted</span></div>
+      ${S.boost.length ? `<div class="pf-sub">Lifted because you starred them · tap to drop</div><div class="s-chips">${S.boost.map(b => `<button type="button" class="s-chip" data-unboost="${esc(b)}">${esc(b)} ×</button>`).join("")}</div>` : ""}
+      <div class="pf-btns">${S.nope.length ? `<button type="button" class="s-btn ghost" data-pf="clear-nope">Bring back “not interested” shows</button>` : ""}</div>`;
+  } else if(id === "device"){
+    h = `<div class="pf-h"><h2>Devices</h2></div>
+      <p class="pf-note">Your profile lives in this browser only. To use it on another phone or computer, open this link there.</p>
+      <div class="pf-btns"><button type="button" class="s-btn" data-pf="share">Copy my profile link</button>
+        <button type="button" class="s-btn ghost pf-danger" data-pf="reset">Start over</button></div>`;
+  }
+  box.innerHTML = h;
+}
+function profileClick(e){
+  const t = e.target, p = S.profile;
+  const pf = t.closest("[data-pf]");
+  if(pf){
+    const a = pf.dataset.pf;
+    if(a === "quiz"){ openQuiz(); return; }
+    if(a === "live"){ showPage("live"); return; }
+    if(a === "genres-reset"){ p.genres = {}; pfCommit("genres"); return; }
+    if(a === "venue-add"){ addVenue(document.getElementById("pf-venue").value); return; }
+    if(a === "clear-nope"){ const was = S.nope.slice(); S.nope = []; pfCommit("learned");
+      toast(`${was.length} show${was.length > 1 ? "s" : ""} back in your lists.`, 6000, {label: "Undo", run: () => { S.nope = was; pfCommit("learned"); }}, "success"); return; }
+    if(a === "share"){ shareProfile(); return; }
+    if(a === "reset"){ toast("Start over? Your answers, genres, artists and venues are cleared; stars stay.", 8000, {label: "Start over", run: () => { S.profile = null; save(); liveDirty = true; openQuiz(); }}, "warn"); return; }
+    return;
+  }
+  const j = t.closest("[data-jump]");
+  if(j){ e.preventDefault(); document.getElementById("pf-" + j.dataset.jump).scrollIntoView({behavior: "smooth"}); return; }
+  const c = t.closest("[data-pcity]");
+  if(c){ if(p.city !== c.dataset.pcity){ p.city = c.dataset.pcity; p.venues = []; p.avoid = []; pfCommit(["city", "venues"]); } return; }
+  const qa = t.closest("[data-qa]");
+  if(qa){ const id = qa.dataset.qa, v = qa.dataset.v, quiz = Object.assign({}, p.quiz);
+    if(quiz[id] === v) delete quiz[id]; else quiz[id] = v;
+    p.quiz = quiz; applyQuiz(p); pfCommit(["answers", "genres", "style"]); return; }
+  const gl = t.closest("[data-gl]");
+  if(gl){ p.genres = Object.assign({}, p.genres, {[gl.dataset.gl]: Number(gl.dataset.v)}); pfCommit("genres"); return; }
+  const r = t.closest("[data-add]"); if(r){ addArtist(JSON.parse(r.dataset.add)); return; }
+  const u = t.closest("[data-unband]");
+  if(u){ const n = u.dataset.unband; p.bands = p.bands.filter(x => x !== n);
+    p.picks = (p.picks || []).filter(x => x.name !== n); p.similar = (p.similar || []).filter(x => x.via !== n); pfCommit(["artists", "genres"]); return; }
+  const lk = t.closest("[data-like]"); if(lk){ likeRelated(lk.dataset.like, lk.dataset.img); return; }
+  const v = t.closest("[data-venue]");
+  if(v){ const n = v.dataset.venue, liked = p.venues.includes(n), avoided = (p.avoid || []).includes(n);
+    p.venues = p.venues.filter(x => x !== n); p.avoid = (p.avoid || []).filter(x => x !== n);
+    if(!liked && !avoided) p.venues.push(n); else if(liked) p.avoid.push(n);
+    pfCommit("venues"); return; }
+  const d = t.closest("[data-disc]"); if(d){ p.discovery = Number(d.dataset.disc); pfCommit("style"); return; }
+  const sz = t.closest("[data-size]"); if(sz){ p.size = sz.dataset.size || null; pfCommit("style"); return; }
+  const fs = t.closest("[data-fest]"); if(fs){ p.fest = Number(fs.dataset.fest); pfCommit("style"); return; }
+  const dy = t.closest("[data-day]");
+  if(dy){ const n = Number(dy.dataset.day), days = new Set(p.days || []);
+    if(days.has(n)){ if(days.size > 1) days.delete(n); } else days.add(n);
+    p.days = [...days]; pfCommit("style"); return; }
+  const bu = t.closest("[data-budget]"); if(bu){ p.budget = Number(bu.dataset.budget); pfCommit("style"); return; }
+  const ub = t.closest("[data-unboost]"); if(ub){ S.boost = S.boost.filter(b => b !== ub.dataset.unboost); pfCommit("learned"); return; }
+}
+function profileChange(e){
+  const t = e.target.closest("[data-tg]");
+  if(!t) return;
+  S.profile[t.dataset.tg] = t.checked;
+  pfCommit();
+}
+function addVenue(name){
+  const p = S.profile, all = venuesOf(p.city);
+  const hit = all.find(v => norm(v) === norm(name)) || all.find(v => norm(v).includes(norm(name)) && norm(name).length >= 3);
+  if(!hit){ toast(name.trim() ? `No upcoming shows at “${name.trim()}” in ${CITY_TITLE[p.city]}.` : "Type a venue name first.", 3500); return; }
+  p.avoid = (p.avoid || []).filter(x => x !== hit);
+  if(!p.venues.includes(hit)) p.venues.push(hit);
+  pfCommit("venues");
+  toast(`♥ ${hit}`, 2500, null, "success");
+}
+/* The profile as a link: #p= and the profile, packed. Opening it on another
+   device offers to use it there. */
+function shareProfile(){
+  const json = JSON.stringify(S.profile);
+  const url = location.origin + location.pathname + "#p=" + btoa(unescape(encodeURIComponent(json))).replace(/=+$/, "");
+  const ok = () => toast("Link copied. Open it on your other device and your profile moves in.", 6000, null, "success");
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok, () => prompt("Copy this link:", url));
+  else prompt("Copy this link:", url);
+}
+function importProfile(){
+  const m = /^#p=([A-Za-z0-9+/]+)/.exec(location.hash);
+  if(!m) return false;
+  history.replaceState(null, "", location.pathname + location.search);
+  let p = null;
+  try{ p = upgrade(JSON.parse(decodeURIComponent(escape(atob(m[1]))))); }catch(e){}
+  if(!p || !p.city){ toast("That profile link didn't work. Copy it again?", 5000, null, "warn"); return false; }
+  const use = () => { S.profile = p; save(); render(); paintDock(); toast("Profile moved in.", 4000, null, "success"); };
+  if(!S.profile){ use(); return true; }
+  toast("Use the profile from this link instead of the one on this device?", 12000, {label: "Use it", run: use}, "info");
+  return true;
 }
 
 /* Artist search: Deezer's matches by fame, the local listings as a fallback. */
@@ -1181,19 +1658,21 @@ function artistSearch(){
       hits = ACTS.filter(a => norm(a).includes(norm(q))).slice(0, 5).map(a => ({id: null, name: a, img: null}));
     }
     if(seq !== searchSeq) return;
-    hits = hits.filter(h => !draft.bands.some(b => norm(b) === norm(h.name)));
+    hits = hits.filter(h => !profile().bands.some(b => norm(b) === norm(h.name)));
     const fmtFans = n => n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, "") + "M fans" : n >= 1e3 ? Math.round(n / 1e3) + "k fans" : n ? n + " fans" : "";
     out.innerHTML = hits.map(h => `<button type="button" class="s-res" data-add="${esc(JSON.stringify(h))}">${face(h.img, h.name)}<span><b>${esc(h.name)}</b><small>${playsHere(h.name) ? '<em>plays here soon</em> · ' : ""}${fmtFans(h.fans)}</small></span><i aria-hidden="true">+</i></button>`).join("")
       || `<button type="button" class="s-res" data-add="${esc(JSON.stringify({id: null, name: q, img: null}))}"><span class="s-face mono">+</span><span><b>Add “${esc(q)}”</b><small>as typed</small></span></button>`;
   }, 250);
 }
+const face = (img, name, cls = "s-face") => img ? `<img class="${cls}" src="${esc(img)}" alt="" loading="lazy">` : `<span class="${cls} mono">${esc((name || "?").slice(0, 1))}</span>`;
 async function addArtist(h){
-  if(draft.bands.some(b => norm(b) === norm(h.name))) return;
-  draft.bands.push(h.name);
+  const p = S.profile;
+  if(p.bands.some(b => norm(b) === norm(h.name))) return;
+  p.bands.push(h.name);
   const pick = {id: h.id, name: h.name, img: h.img, genres: []};
-  draft.picks = (draft.picks || []).concat(pick);
-  const i = document.getElementById("s-artist"); if(i) i.value = "";
-  drawSetup();
+  p.picks = (p.picks || []).concat(pick);
+  pfCommit("artists");
+  const i = document.getElementById("s-artist"); if(i){ i.value = ""; if(matchMedia("(pointer:fine)").matches) i.focus(); }
   if(!h.id) return;
   try{
     const [rel, alb] = await Promise.all([deezer(`artist/${h.id}/related`, {limit: 12}), deezer(`artist/${h.id}/albums`, {limit: 12})]);
@@ -1203,89 +1682,22 @@ async function addArtist(h){
     for(const a of alb.data || []){ const g = DZ_GENRE[a.genre_id]; if(g) c[g] = (c[g] || 0) + 1; }
     pick.genres = Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 2).map(x => x[0]);
     // Their circle counts a little even untapped: "close to X you like".
-    draft.similar = (draft.similar || []).filter(s => s.via !== h.name).concat(rs.slice(0, 10).map(r => ({name: r.name, via: h.name})));
+    p.similar = (p.similar || []).filter(s => s.via !== h.name).concat(rs.slice(0, 10).map(r => ({name: r.name, via: h.name})));
   }catch(e){}
-  if(!document.getElementById("setup").hidden && QUICK[step] === "artists") drawSetup();
+  if(S.profile === p) pfCommit(["artists", "genres"]);
 }
 function likeRelated(name, img){
-  if(draft.bands.some(b => norm(b) === norm(name))) return;
-  draft.bands.push(name);
-  draft.liked = (draft.liked || []).concat({name, img});
-  drawSetup();
-}
-/* Fine-tune's plain band list (for names Deezer doesn't know). */
-function bandSuggest(){
-  const i = document.getElementById("s-band"), q = norm(i.value), out = document.getElementById("s-sugg");
-  if(q.length < 2){ out.innerHTML = ""; return; }
-  const hits = ACTS.filter(a => norm(a).includes(q) && !draft.bands.includes(a)).slice(0, 6);
-  out.innerHTML = hits.map(a => `<button type="button" class="s-sug" data-sug="${esc(a)}">${esc(a)}</button>`).join("");
-}
-function addBand(name){
-  name = (name || "").trim();
-  if(name && !draft.bands.some(b => norm(b) === norm(name))) draft.bands.push(name);
-  drawSetup();
-}
-function goStep(m, s){ mode = m; step = s; drawSetup(); }
-function nextStep(){
-  if(mode === "hub"){ finish(); return; }
-  const steps = mode === "fine" ? FINE : QUICK;
-  if(back === "hub" && mode === "quick"){ back = null; goStep("hub", 0); back = null; return; }
-  if(mode === "fine" && step === steps.length - 1){ if(back === "hub"){ back = null; goStep("hub", 0); } else finish(); return; }
-  if(mode === "quick" && QUICK[step] === "done"){ finish(); return; }
-  goStep(mode, step + 1);
-}
-function setupClick(e){
-  const t = e.target;
-  const ed = t.closest("[data-edit]");
-  if(ed){
-    const w = ed.dataset.edit;
-    back = mode === "hub" ? "hub" : back;
-    if(w === "fine") goStep("fine", 0);
-    else { duelI = 0; goStep("quick", QUICK.indexOf(w)); }
-    return;
-  }
-  const c = t.closest("[data-city]"); if(c){ draft.city = c.dataset.city; draft.venues = []; drawSetup(); return; }
-  const r = t.closest("[data-add]"); if(r){ addArtist(JSON.parse(r.dataset.add)); return; }
-  const u = t.closest("[data-unband]"); if(u){ const n = u.dataset.unband; draft.bands = draft.bands.filter(x => x !== n);
-    draft.picks = (draft.picks || []).filter(x => x.name !== n); draft.similar = (draft.similar || []).filter(x => x.via !== n); drawSetup(); return; }
-  const lk = t.closest("[data-like]"); if(lk){ likeRelated(lk.dataset.like, lk.dataset.img); return; }
-  const pk = t.closest("[data-pick]");
-  if(pk){
-    const d = DUELS[duelI];
-    draft.duels = Object.assign({}, draft.duels, {[d.id]: pk.dataset.pick});
-    drawSetup();
-    setTimeout(() => {
-      if(duelI < DUELS.length - 1){ duelI++; drawSetup(); }
-      else { duelI = 0; nextStep(); }
-    }, 320);
-    return;
-  }
-  const g = t.closest("[data-genre]");
-  if(g){ const id = g.dataset.genre, cur = (draft.genres || {})[id] || (likedGenres(draft)[id] > 0 ? 1 : 0);
-    draft.genres = Object.assign({}, draft.genres, {[id]: cur === 0 ? 1 : cur > 0 ? -1 : 0}); drawSetup(); return; }
-  const s = t.closest("[data-sug]"); if(s){ addBand(s.dataset.sug); return; }
-  const b = t.closest("[data-band]"); if(b){ draft.bands = draft.bands.filter(x => x !== b.dataset.band); drawSetup(); return; }
-  if(t.id === "s-band-add"){ addBand(document.getElementById("s-band").value); return; }
-  const v = t.closest("[data-venue]"); if(v){ const n = v.dataset.venue; draft.venues = draft.venues.includes(n) ? draft.venues.filter(x => x !== n) : [...draft.venues, n]; drawSetup(); return; }
-  const d = t.closest("[data-disc]"); if(d){ draft.discovery = Number(d.dataset.disc); drawSetup(); return; }
-  if(t.id === "s-trips"){ draft.trips = t.checked; paintCount(); return; }
-  if(t.closest("#setup-back")){
-    if(mode === "quick" && QUICK[step] === "duels" && duelI > 0){ duelI--; drawSetup(); return; }
-    if(back === "hub" && (mode !== "hub") && (mode === "quick" || step === 0)){ back = null; goStep("hub", 0); return; }
-    if(step > 0) goStep(mode, step - 1); else if(mode === "fine") goStep("quick", QUICK.indexOf("done"));
-    return;
-  }
-  if(t.closest("#setup-skip")){
-    if(mode === "quick" && QUICK[step] === "duels"){ if(duelI < DUELS.length - 1){ duelI++; drawSetup(); } else { duelI = 0; nextStep(); } return; }
-    nextStep(); return;
-  }
-  if(t.closest("#setup-next")){ nextStep(); return; }
+  const p = S.profile;
+  if(p.bands.some(b => norm(b) === norm(name))) return;
+  p.bands.push(name);
+  p.picks = (p.picks || []).concat({id: null, name, img, genres: []});
+  pfCommit("artists");
 }
 
 /* ---------- nudges: one small question when your stars suggest it ---------- */
 function nudge(){
   if(!S.profile) return null;
-  const asked = S.asked || {}, lg = likedGenres(S.profile), byId = new Map(EVENTS.map(e => [e.id, e]));
+  const asked = S.asked || {}, lg = genreLevels(S.profile), byId = new Map(EVENTS.map(e => [e.id, e]));
   const groupOf = e => GENRES.filter(g => (e.tags || []).some(t => g.tags.includes(t))).map(g => g.id);
   const stars = {}, nopes = {};
   for(const id of S.starred){ const e = byId.get(id); if(e) for(const g of groupOf(e)) stars[g] = (stars[g] || 0) + 1; }
@@ -1298,7 +1710,15 @@ function nudge(){
   return null;
 }
 function paintNudge(){
-  const box = document.getElementById("nudge"), n = nudge();
+  const box = document.getElementById("nudge");
+  // Set up before the quiz existed: offer it once.
+  if(S.profile && !S.profile.quizDone && !S.quizInvite){
+    box.hidden = false;
+    box.innerHTML = `<span class="ng-ic" aria-hidden="true">✦</span><div class="ng-t"><b>New:</b> a one-minute quiz that sharpens your picks, and a Profile page to fine-tune them.</div>
+      <button type="button" class="ng-yes" data-inv="1">Play</button><button type="button" class="ng-no" data-inv="0">Not now</button>`;
+    return;
+  }
+  const n = nudge();
   box.hidden = !n;
   if(!n) return;
   box.innerHTML = `<span class="ng-ic" aria-hidden="true">?</span><div class="ng-t">${n.more
@@ -1308,6 +1728,8 @@ function paintNudge(){
     <button type="button" class="ng-no" data-ng="${n.g.id}" data-v="0">No</button>`;
 }
 document.addEventListener("click", e => {
+  const inv = e.target.closest("[data-inv]");
+  if(inv){ S.quizInvite = true; save(); paintNudge(); if(inv.dataset.inv === "1") openQuiz(); return; }
   const b = e.target.closest("[data-ng]");
   if(!b) return;
   const id = b.dataset.ng, v = Number(b.dataset.v);
@@ -1751,7 +2173,8 @@ function render(){
   document.getElementById("brand-city").textContent = CITY_TITLE[prof.city];
   document.getElementById("bar-city").textContent = CITY_TITLE[prof.city];
   document.getElementById("tag-city").textContent = CITY_TITLE[prof.city];
-  for(const id of ["sec-fest", "sec-trip"]) document.getElementById(id).classList.toggle("off", !prof.trips);
+  document.getElementById("sec-trip").classList.toggle("off", !prof.trips);
+  document.getElementById("sec-fest").classList.toggle("off", prof.festivals === false);
 
   const visible = all.filter(e => {
     if(new Date(e.start).getTime() < cutoff) return false;   // already happened
@@ -1759,6 +2182,8 @@ function render(){
     if(!everything && e.tourist) return false;
     if(!everything && e.cancelled) return false;
     if(!prof.trips && (e.trip || (e.festival && e.city !== prof.city))) return false;
+    if(prof.festivals === false && e.festival) return false;
+    if(!everything && prof.hideSoldOut && e.sold_out && !S.starred.includes(e.id)) return false;
     // Festivals keep their own best-of cut below.
     if(!everything && !e.festival && !forYou(e)) return false;
     return true;
@@ -1865,7 +2290,7 @@ function render(){
   const FIRST = {week: 40, ahead: 30, fest: 15, trip: 15};
   const W = pick("week",  week,  FIRST.week, false);
   const A = pick("ahead", ahead, curated ? META.shortlist_size : FIRST.ahead, curated);
-  const F = pick("fest",  fest,  curated ? FEST_N : FIRST.fest, curated);
+  const F = pick("fest",  fest,  curated ? (prof.fest > 0 ? 20 : prof.fest < 0 ? 6 : FEST_N) : FIRST.fest, curated);
   const T = pick("trip",  trip,  curated ? 12 : FIRST.trip, curated);
 
   document.getElementById("list-week").innerHTML  = W.total ? group(W.rows) + moreBtn("week", W.total, W.n)
@@ -2029,10 +2454,10 @@ function setMain(x, animate){
 }
 document.addEventListener("touchstart", e => {
   swipe = null;
-  if(e.touches.length !== 1 || query.trim()) return;
+  if(e.touches.length !== 1 || query.trim() || page !== "live") return;
   const t = e.touches[0];
   if(t.clientX < 24 || t.clientX > window.innerWidth - 24) return;
-  if(e.target.closest(".chips, .mast-cal, .toast, input, .cal-pop, .setup")) return;
+  if(e.target.closest(".chips, .mast-cal, .toast, input, .cal-pop, .setup, .topnav")) return;
   swipe = {x: t.clientX, y: t.clientY, at: Date.now(), lock: null, dx: 0};
 }, {passive: true});
 document.addEventListener("touchmove", e => {
@@ -2069,7 +2494,7 @@ document.addEventListener("touchend", e => endSwipe(e.changedTouches[0]), {passi
 document.addEventListener("touchcancel", () => endSwipe(null), {passive: true});
 // One-time tip on touch screens.
 try{
-  if(S.profile && matchMedia("(pointer:coarse)").matches && !localStorage.getItem("live-picks-swipe-tip")){
+  if(S.profile && location.hash !== "#profile" && matchMedia("(pointer:coarse)").matches && !localStorage.getItem("live-picks-swipe-tip")){
     localStorage.setItem("live-picks-swipe-tip", "1");
     setTimeout(() => toast("Tip: swipe left or right to switch between For you, Tonight, Everything and Starred.", 7000), 1500);
   }
@@ -2081,16 +2506,19 @@ qbox.addEventListener("keydown", e => {
   if(e.key === "Escape"){ qbox.value = ""; query = ""; shown = {}; render(); }
 });
 document.addEventListener("keydown", e => {
-  if(e.key === "Escape") closeCalPop();
+  if(e.key === "Escape"){ closeCalPop(); if(qz && S.profile) closeQuiz(); }
   const cell = e.target.closest && e.target.closest(".cal-day.has-star");
   if(cell && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); cell.click(); }
 });
 
 const setupEl = document.getElementById("setup");
-setupEl.addEventListener("click", setupClick);
-setupEl.addEventListener("input", e => { if(e.target.id === "s-band") bandSuggest(); if(e.target.id === "s-artist") artistSearch(); });
-setupEl.addEventListener("keydown", e => { if(e.target.id === "s-band" && e.key === "Enter"){ e.preventDefault(); addBand(e.target.value); } });
-document.getElementById("my-taste").addEventListener("click", openSetup);
+setupEl.addEventListener("click", quizClick);
+setupEl.addEventListener("keydown", e => { const h = e.target.closest("[data-hear]"); if(h && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); h.click(); } });
+const pfEl = document.getElementById("page-profile");
+pfEl.addEventListener("click", profileClick);
+pfEl.addEventListener("change", profileChange);
+pfEl.addEventListener("input", e => { if(e.target.id === "s-artist") artistSearch(); });
+pfEl.addEventListener("keydown", e => { if(e.target.id === "pf-venue" && e.key === "Enter"){ e.preventDefault(); addVenue(e.target.value); } });
 
 /* The view switch's sliding pill, under whichever view is on. */
 function paintChips(jump){
@@ -2105,6 +2533,10 @@ window.addEventListener("resize", () => paintChips(true));
 try{ document.fonts.ready.then(() => paintChips(true)); }catch(e){}
 
 render();
-if(!S.profile) openSetup();
+paintDock(); measureNav();
+try{ document.fonts.ready.then(measureNav); }catch(e){}
+const imported = importProfile();
+if(location.hash === "#profile") showPage("profile", false);
+if(!S.profile && !imported) openQuiz();
 
 </script>
