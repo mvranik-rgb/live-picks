@@ -2206,11 +2206,17 @@ function render(){
      populated. Deliberately independent of the filter chips and search below
      it -- the whole point is that it's the first thing visible on any given
      load, regardless of what view was left selected last time. */
-  const topPicks = all
+  /* Your city first: up to five from it, and one or two from elsewhere only
+     alongside them (and only with trips on) -- never a list of another
+     city's shows. A festival counts as here when it happens here. */
+  const isHere = e => e.festival ? (e.city === prof.city || e.place === CITY_NAME[prof.city]) : !e.trip;
+  const newPicks = all
     .filter(e => e.is_new && new Date(e.start).getTime() >= cutoff && !e.tourist && !e.sold_out && !e.cancelled
                  && !S.nope.includes(e.id) && e._t >= META.relevant_min)
-    .sort(byScore)
-    .slice(0, 5);
+    .sort(byScore);
+  const localNew = newPicks.filter(isHere).slice(0, 5);
+  const awayNew = localNew.length && prof.trips ? newPicks.filter(e => !isHere(e)).slice(0, Math.min(2, 6 - localNew.length)) : [];
+  const topPicks = localNew.concat(awayNew).sort(byScore);
   paintNudge();
   document.getElementById("sec-top").hidden = topPicks.length === 0;
   document.getElementById("list-top").innerHTML = card(topPicks.map(e => row(e, true)).join(""));
