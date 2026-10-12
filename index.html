@@ -645,6 +645,22 @@ body.setup-open{overflow:hidden}
 .s-bub:hover{border-color:var(--accent)}
 .s-bub .s-face{width:28px; height:28px; font-size:11px}
 .s-chips{display:flex; flex-wrap:wrap; gap:8px}
+/* suggested artists: a grid of cards; a new one pops in where one was taken */
+.sg-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:8px}
+.sg{position:relative; display:flex; align-items:stretch; border-radius:16px; background:var(--surface); border:1px solid var(--line-soft); transition:border-color .2s}
+@media (hover:hover){ .sg:hover{border-color:var(--accent)} }
+.sg.fresh{animation:s-in .4s cubic-bezier(.3,1.5,.5,1)}
+.sg-add{flex:1; min-width:0; display:flex; align-items:center; gap:10px; padding:8px 30px 8px 8px; border:0; background:none; color:var(--text); cursor:pointer; text-align:left; font:inherit}
+.sg-face{width:44px; height:44px; font-size:15px}
+.sg-t{flex:1; min-width:0; line-height:1.25}
+.sg-t b{display:block; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.sg-t small{display:block; font-size:11.5px; color:var(--faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.sg-t small.sg-here{color:var(--accent); font-weight:600}
+.sg-add > i{flex:none; font-style:normal; font-size:19px; width:28px; height:28px; display:grid; place-items:center; border-radius:50%; background:var(--accent-wash); color:var(--accent)}
+.sg-x{position:absolute; top:3px; right:3px; width:24px; height:24px; border:0; border-radius:50%; background:none; color:var(--faint); cursor:pointer; font-size:15px; line-height:1}
+.sg-x:hover{color:var(--text); background:var(--line-soft)}
+.sg-add > i{display:none}
+@media (max-width:520px){ .sg-grid{grid-template-columns:1fr 1fr} .sg-face{width:38px; height:38px} .sg-add{gap:8px; padding:7px 26px 7px 7px} }
 .s-chip{padding:8px 13px; border-radius:999px; cursor:pointer; font:inherit; font-size:13.5px; background:var(--surface); color:var(--text); border:1px solid var(--line)}
 .s-chip.on{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
 .s-chip.off{background:transparent; color:var(--faint); border-style:dashed; text-decoration:line-through}
@@ -1483,6 +1499,7 @@ function drawProfile(){
     ${PF_CARDS.map(([id]) => `<section class="pf-card" id="pf-${id}"></section>`).join("")}</div>`;
   for(const [id] of PF_CARDS) drawCard(id);
   paintStat();
+  if(!drawProfile.enriched){ drawProfile.enriched = true; enrichAll(); }
 }
 function drawCard(id){
   const box = document.getElementById("pf-" + id);
@@ -1515,14 +1532,14 @@ function drawCard(id){
     const picks = p.picks || [];
     const upcoming = name => EVENTS.filter(e => new Date(e.start).getTime() > Date.now() - 3 * 36e5 && (e.acts || []).some(a => nameMatch(norm(a), norm(name)))).length;
     h = `<div class="pf-h"><h2>Favourite artists</h2></div>
-      <p class="pf-note">The strongest signal there is: any show by them goes straight to the top, and their circle ("fans also like") gets a lift too.</p>
+      <p class="pf-note">The strongest signal there is: any show by them goes straight to the top, and artists like them get a lift too. Suggestions below follow every pick.</p>
       <div class="s-search"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M10.4 10.4l3.4 3.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><input type="search" id="s-artist" autocomplete="off" spellcheck="false" placeholder="Muse, Dua Lipa, Mňága a Žďorp…" aria-label="Search for an artist"></div>
       <div class="s-results" id="s-results"></div>
       <div class="s-picked">${p.bands.length ? p.bands.map(b => { const k = picks.find(x => x.name === b), n = upcoming(b);
         return `<button type="button" class="s-pick" data-unband="${esc(b)}" title="Remove ${esc(b)}">${face(k && k.img, b)}<span>${esc(b)}</span>${n ? `<small>${n} show${n > 1 ? "s" : ""}</small>` : ""}<i aria-hidden="true">×</i></button>`; }).join("")
         : `<p class="pf-empty">None yet. Search above: three or four make a big difference.</p>`}</div>
-      ${picks.slice(-3).map(k => { const rel = (related.get(k.id) || []).filter(r => !p.bands.some(b => norm(b) === norm(r.name))).slice(0, 8);
-        return rel.length ? `<div class="s-rel"><p>Fans of <b>${esc(k.name)}</b> also like</p><div class="s-bubbles">${rel.map(r => `<button type="button" class="s-bub" data-like="${esc(r.name)}" data-img="${esc(r.img || "")}">${face(r.img, r.name)}<span>${esc(r.name)}</span></button>`).join("")}</div></div>` : ""; }).join("")}`;
+      <div class="pf-sub">Suggested for you · tap to add</div>
+      <div class="sg-grid" id="pf-sugg"></div>`;
   } else if(id === "venues"){
     const top = venuesOf(p.city), marked = [...p.venues, ...(p.avoid || [])];
     const list = [...marked.filter(v => !top.slice(0, 24).includes(v)), ...top.slice(0, 24)];
@@ -1555,6 +1572,7 @@ function drawCard(id){
         <button type="button" class="s-btn ghost pf-danger" data-pf="reset">Start over</button></div>`;
   }
   box.innerHTML = h;
+  if(id === "artists") refreshSugg();
 }
 function profileClick(e){
   const t = e.target, p = S.profile;
@@ -1574,7 +1592,7 @@ function profileClick(e){
   const j = t.closest("[data-jump]");
   if(j){ e.preventDefault(); document.getElementById("pf-" + j.dataset.jump).scrollIntoView({behavior: "smooth"}); return; }
   const c = t.closest("[data-pcity]");
-  if(c){ if(p.city !== c.dataset.pcity){ p.city = c.dataset.pcity; p.venues = []; p.avoid = []; pfCommit(["city", "venues"]); } return; }
+  if(c){ if(p.city !== c.dataset.pcity){ p.city = c.dataset.pcity; p.venues = []; p.avoid = []; pfCommit(["city", "venues", "artists"]); } return; }
   const qa = t.closest("[data-qa]");
   if(qa){ const id = qa.dataset.qa, v = qa.dataset.v, quiz = Object.assign({}, p.quiz);
     if(quiz[id] === v) delete quiz[id]; else quiz[id] = v;
@@ -1585,7 +1603,11 @@ function profileClick(e){
   const u = t.closest("[data-unband]");
   if(u){ const n = u.dataset.unband; p.bands = p.bands.filter(x => x !== n);
     p.picks = (p.picks || []).filter(x => x.name !== n); p.similar = (p.similar || []).filter(x => x.via !== n); pfCommit(["artists", "genres"]); return; }
-  const lk = t.closest("[data-like]"); if(lk){ likeRelated(lk.dataset.like, lk.dataset.img); return; }
+  const sg = t.closest("[data-sug]");
+  if(sg){ const c = sugSlots.find(x => norm(x.name) === sg.dataset.sug); if(c) addArtist({id: c.id, name: c.name, img: c.img || FACES[c.name]}); return; }
+  const us = t.closest("[data-unsug]");
+  if(us){ const c = sugSlots.find(x => norm(x.name) === us.dataset.unsug);
+    if(c){ p.notArtists = (p.notArtists || []).concat(c.name); save(); refreshSugg(); } return; }
   const v = t.closest("[data-venue]");
   if(v){ const n = v.dataset.venue, liked = p.venues.includes(n), avoided = (p.avoid || []).includes(n);
     p.venues = p.venues.filter(x => x !== n); p.avoid = (p.avoid || []).filter(x => x !== n);
@@ -1665,34 +1687,173 @@ function artistSearch(){
   }, 250);
 }
 const face = (img, name, cls = "s-face") => img ? `<img class="${cls}" src="${esc(img)}" alt="" loading="lazy">` : `<span class="${cls} mono">${esc((name || "?").slice(0, 1))}</span>`;
+/* ---------- suggested artists: always there, updated a slot at a time ----------
+   Candidates come from two places:
+   - Deezer's "similar artists" for every favourite (kept in this browser, so
+     the list survives a reload): the closer the match and the more of your
+     favourites an artist is close to, the higher it ranks;
+   - the listings: acts with a show coming up in your city whose genres fit
+     your profile (the only source before any favourite is picked).
+   A show here soon adds to either. The list holds SUG_N slots: picking or
+   dismissing one refills just that slot with the best candidate not yet
+   shown; a new favourite may also swap up to SUG_SWAP of the weakest slots
+   for clearly better artists like it. Everything else stays where it is. */
+const SUG_SWAP = 4;
+const SUG_N = 12;
+const REL_KEY = "live-picks-related";
+let REL = (() => { try{ return JSON.parse(localStorage.getItem(REL_KEY) || "{}") || {}; }catch(e){ return {}; } })();
+const relSave = () => { try{ localStorage.setItem(REL_KEY, JSON.stringify(REL)); }catch(e){} };
+let sugSlots = [], sugFresh = new Set(), sugCity = null;
+/* Upcoming shows per act (folded name), built on first use. */
+let actShows = null;
+function showsOf(name){
+  if(!actShows){
+    actShows = new Map();
+    const cut = Date.now() - 3 * 36e5;
+    for(const e of EVENTS){
+      if(new Date(e.start).getTime() < cut || e.tourist || e.cancelled) continue;
+      for(const a of e.acts || []){ const k = norm(a); if(!actShows.has(k)) actShows.set(k, []); actShows.get(k).push(e); }
+    }
+    for(const l of actShows.values()) l.sort((a, b) => new Date(a.start) - new Date(b.start));
+  }
+  return actShows.get(norm(name)) || [];
+}
+const shortDate = e => { const d = new Date(e.start); return `${d.getDate()} ${MON[d.getMonth()]}`; };
+function sugCandidates(){
+  const p = profile(), PP = prepared(p), C = new Map();
+  const taken = new Set([...p.bands, ...(p.notArtists || [])].map(norm));
+  const get = (name, img, id, fans) => {
+    const k = norm(name);
+    if(!k || taken.has(k)) return null;
+    let c = C.get(k);
+    if(!c){ c = {name, img: img || null, id: id || null, fans: fans || 0, sim: 0, via: [], here: null, fit: 0}; C.set(k, c); }
+    if(!c.img && img) c.img = img;
+    if(!c.id && id) c.id = id;
+    return c;
+  };
+  // similar to your favourites
+  for(const pk of p.picks || []){
+    const rel = pk.id && REL[pk.id];
+    if(!rel) continue;
+    rel.forEach((r, i) => {
+      const c = get(r.name, r.img, r.id, r.fans);
+      if(!c) return;
+      c.sim += 1 - i / (rel.length + 5);
+      c.via.push(pk.name);
+    });
+  }
+  // playing here soon, and fitting your genres
+  const local = new Map();
+  for(const e of EVENTS){
+    if(e.city !== p.city || e.festival || e.tourist || e.cancelled || new Date(e.start).getTime() < Date.now()) continue;
+    const t = tasteOf(e, PP).taste;
+    for(const a of (e.acts || []).slice(0, 2)){
+      const k = norm(a);
+      if(!local.has(k) || local.get(k).t < t) local.set(k, {name: a, t, e});
+    }
+  }
+  for(const [k, x] of local){
+    const c = C.get(k) || (x.t >= 2 ? get(x.name) : null);
+    if(!c) continue;
+    c.here = c.here || x.e; c.fit = Math.max(c.fit, x.t);
+  }
+  for(const c of C.values()){
+    if(!c.here){ const s = showsOf(c.name).find(e => e.city === p.city && !e.festival); if(s) c.here = s; }
+    // similarity leads; a show here soon and a genre fit (at most 1.5) follow
+    c.score = 6 * c.sim + 1.5 * Math.max(0, c.via.length - 1) + (c.here ? 2.5 : 0) + Math.min(c.fit, 8) / 5.3
+            + Math.log10((c.fans || 0) + 1) / 12 + (showsOf(c.name).length ? .3 : 0);
+  }
+  return [...C.values()].filter(c => c.sim > 0 || c.here).sort((a, b) => b.score - a.score);
+}
+/* Keep the slots that are still good, refill the rest in place; after a new
+   favourite (grow), let its best matches take the weakest slots. */
+function refreshSugg(grow){
+  const p = profile();
+  if(sugCity !== p.city){ sugSlots = []; sugCity = p.city; }
+  const ranked = sugCandidates(), byKey = new Map(ranked.map(c => [norm(c.name), c]));
+  const shown = new Set(), next = () => ranked.find(c => !shown.has(norm(c.name)) && !sugSlots.some(s => s && norm(s.name) === norm(c.name)));
+  sugFresh = new Set();
+  sugSlots = sugSlots.map(s => { const c = s && byKey.get(norm(s.name)); if(c){ shown.add(norm(c.name)); return c; } return null; });
+  for(let i = 0; i < sugSlots.length; i++) if(!sugSlots[i]){ const c = next(); if(c){ sugSlots[i] = c; shown.add(norm(c.name)); sugFresh.add(norm(c.name)); } }
+  while(sugSlots.length < SUG_N){ const c = next(); if(!c) break; sugSlots.push(c); shown.add(norm(c.name)); sugFresh.add(norm(c.name)); }
+  sugSlots = sugSlots.filter(Boolean);
+  if(grow){
+    const weak = sugSlots.map((c, i) => [c.score, i]).sort((a, b) => a[0] - b[0]).slice(0, SUG_SWAP).map(x => x[1]);
+    for(const i of weak){
+      const c = next();
+      if(!c || c.score < sugSlots[i].score + .5) break;
+      sugSlots[i] = c; sugFresh.add(norm(c.name));
+    }
+  }
+  paintSugg();
+}
+function sugWhy(c){
+  const city = CITY_TITLE[profile().city];
+  const like = c.via.length ? `Like ${c.via.slice(0, 2).join(" & ")}${c.via.length > 2 ? ` +${c.via.length - 2}` : ""}` : "";
+  const here = c.here ? `${city} · ${shortDate(c.here)}` : "";
+  return like && here ? [like, here] : [like || (c.fit >= 2 ? "Fits your genres" : ""), here];
+}
+function paintSugg(){
+  const box = document.getElementById("pf-sugg");
+  if(!box) return;
+  const hasPicks = (profile().picks || []).length;
+  box.innerHTML = sugSlots.length ? sugSlots.map(c => {
+    const [a, b] = sugWhy(c);
+    return `<div class="sg${sugFresh.has(norm(c.name)) ? " fresh" : ""}"><button type="button" class="sg-add" data-sug="${esc(norm(c.name))}" title="Add ${esc(c.name)}">${face(c.img || FACES[c.name], c.name, "s-face sg-face")}`
+      + `<span class="sg-t"><b>${esc(c.name)}</b>${a ? `<small>${esc(a)}</small>` : ""}${b ? `<small class="sg-here">${esc(b)}</small>` : ""}</span><i aria-hidden="true">+</i></button>`
+      + `<button type="button" class="sg-x" data-unsug="${esc(norm(c.name))}" aria-label="Not ${esc(c.name)}" title="Not for me">×</button></div>`;
+  }).join("") : `<p class="pf-empty">${hasPicks ? "Looking for artists like yours…" : "Answer the quiz or add an artist, and suggestions appear here."}</p>`;
+  sugFresh = new Set();
+  // photos for acts from the listings: looked up a few at a time
+  const need = sugSlots.filter(c => !c.img && !(c.name in FACES)).slice(0, 12);
+  (async () => { for(const c of need){ await bandFace(c.name); await new Promise(r => setTimeout(r, 120)); } if(need.length) paintSugg(); })();
+}
+/* A favourite's Deezer id, photo, genres and similar artists, fetched once. */
+async function enrichPick(pick){
+  const p = S.profile;
+  try{
+    if(!pick.id){
+      const r = await deezer("search/artist", {q: pick.name, limit: 5});
+      const hit = (r.data || []).filter(a => norm(a.name) === norm(pick.name)).sort((a, b) => (b.nb_fan || 0) - (a.nb_fan || 0))[0];
+      if(!hit) return;
+      pick.id = hit.id; pick.img = pick.img || hit.picture_medium;
+    }
+    const jobs = [];
+    if(!REL[pick.id]) jobs.push(deezer(`artist/${pick.id}/related`, {limit: 25}).then(rel => {
+      REL[pick.id] = (rel.data || []).map(a => ({id: a.id, name: a.name, img: a.picture_medium, fans: a.nb_fan || 0}));
+      relSave();
+    }));
+    if(!(pick.genres || []).length) jobs.push(deezer(`artist/${pick.id}/albums`, {limit: 12}).then(alb => {
+      const c = {};
+      for(const a of alb.data || []){ const g = DZ_GENRE[a.genre_id]; if(g) c[g] = (c[g] || 0) + 1; }
+      pick.genres = Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 2).map(x => x[0]);
+    }));
+    await Promise.all(jobs);
+    // Their circle counts a little even untapped: "close to X you like".
+    p.similar = (p.similar || []).filter(s => s.via !== pick.name).concat((REL[pick.id] || []).slice(0, 10).map(r => ({name: r.name, via: pick.name})));
+  }catch(e){ return; }
+  if(S.profile === p){ save(); shown = {}; liveDirty = true; drawCard("genres"); paintStat(); refreshSugg(true); }
+}
 async function addArtist(h){
   const p = S.profile;
   if(p.bands.some(b => norm(b) === norm(h.name))) return;
   p.bands.push(h.name);
-  const pick = {id: h.id, name: h.name, img: h.img, genres: []};
+  p.notArtists = (p.notArtists || []).filter(x => norm(x) !== norm(h.name));
+  const pick = {id: h.id || null, name: h.name, img: h.img || FACES[h.name] || null, genres: []};
   p.picks = (p.picks || []).concat(pick);
   pfCommit("artists");
-  const i = document.getElementById("s-artist"); if(i){ i.value = ""; if(matchMedia("(pointer:fine)").matches) i.focus(); }
-  if(!h.id) return;
-  try{
-    const [rel, alb] = await Promise.all([deezer(`artist/${h.id}/related`, {limit: 12}), deezer(`artist/${h.id}/albums`, {limit: 12})]);
-    const rs = (rel.data || []).map(a => ({name: a.name, img: a.picture_medium}));
-    related.set(h.id, rs);
-    const c = {};
-    for(const a of alb.data || []){ const g = DZ_GENRE[a.genre_id]; if(g) c[g] = (c[g] || 0) + 1; }
-    pick.genres = Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 2).map(x => x[0]);
-    // Their circle counts a little even untapped: "close to X you like".
-    p.similar = (p.similar || []).filter(s => s.via !== h.name).concat(rs.slice(0, 10).map(r => ({name: r.name, via: h.name})));
-  }catch(e){}
-  if(S.profile === p) pfCommit(["artists", "genres"]);
+  const i = document.getElementById("s-artist"); if(i && i.value){ i.value = ""; document.getElementById("s-results").innerHTML = ""; }
+  await enrichPick(pick);
 }
-function likeRelated(name, img){
+/* After a reload: similar artists for favourites from before this version. */
+function enrichAll(){
   const p = S.profile;
-  if(p.bands.some(b => norm(b) === norm(name))) return;
-  p.bands.push(name);
-  p.picks = (p.picks || []).concat({id: null, name, img, genres: []});
-  pfCommit("artists");
+  if(!p) return;
+  // favourites typed before picks were kept with them
+  for(const b of p.bands) if(!(p.picks || []).some(x => x.name === b)) p.picks = (p.picks || []).concat({id: null, name: b, img: null, genres: []});
+  (async () => { for(const pk of p.picks || []) if(!pk.id || !REL[pk.id]){ await enrichPick(pk); await new Promise(r => setTimeout(r, 200)); } })();
 }
+
 
 /* ---------- nudges: one small question when your stars suggest it ---------- */
 function nudge(){
